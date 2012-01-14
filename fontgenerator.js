@@ -214,24 +214,26 @@ TinyFontGenerator = {
 
     // what are we coding for?
     data += " 00 03";        // platform: 3 (Windows)
-    data += " 00 01";        // encoding: 0 (Unicode)
-    data += " 00 00 00 0C";  // subtable offset: 12
+    data += " 00 01";        // encoding: 1 (Unicode)
+    data += " 00 00 00 0C";  // subtable offset: 12 bytes from start of data block
 
-    // We'll use a format 4 subtable, since OTS currently rejects any other subtable format (hopefully this will change in the future because that's a VERY severe restriction)
+    // We'll use a format 4 subtable, since OTS currently rejects any other subtable format
+    // (hopefully this will change in the future because that's a VERY severe restriction)
     data += " 00 04";
     data += " 00 20";        // table length: 32 byte
     data += " 00 00";
     data += " 00 04";        // segCount x 2
-    data += " 00 04";        // Note: even though knowing segCount means searchRange can be computed by the engine, setting it to a wrong value breaks Chrome and Firefox
+    data += " 00 04";        // Note: even though knowing segCount means searchRange can be computed by the engine,
+                             //       setting it to a wrong value breaks Chrome and Firefox
     data += " 00 01";        // idem dito for entrySelector
     data += " 00 00";
 
     // actual character information
-    data += " " + hexchar + " FF FF"; // first character in the segment's range
+    data += " " + hexchar + " FF FF"; // end character codes in each segment range
     data += " 00 00";
-    data += " " + hexchar + " FF FF"; // last character in the segment's range. This is the same as the first, of course.
+    data += " " + hexchar + " FF FF"; // start character codes in each segment range
 
-    // make sure we get the correct idDelta value. Because our "glyph"
+    // Make sure we get the correct idDelta value. Because our "glyph"
     // is always at index 1 (index 0 is reserved for .notdef) we need
     // to set up the delta value such that <character code> + <delta> == 1
     var corrective = -(charnum - 1) + 65536;
