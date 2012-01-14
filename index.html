@@ -1,0 +1,113 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>tiny font generator</title>
+    <script type="text/javascript" src="https://raw.github.com/Pomax/Minimal-font-generator/master/fontgenerator.js"></script>
+    <script type="text/javascript">
+    <!--
+      var counter = 0;
+      function useCharacter() {
+        var character = document.querySelector("#character").value;
+        var font = TinyFontGenerator.generateFont(character);
+
+        // add an @font-face rule for this bespoke font
+        var fontname = 'BespokeFont-'+(counter++);
+        var fontface = document.createElement("style");
+        fontface.setAttribute("type","text/css");
+        fontface.innerHTML =  "@font-face {\n" +
+                              "  font-family: '"+fontname+"';\n" +
+                              "  src: url('data:application/x-font-ttf;base64,"+font+"')\n" +
+                              "       format('truetype');\n" +
+                              "}";
+        document.head.appendChild(fontface);
+        
+        // add a div with that character, styled with the bespoke font
+        var div = document.createElement("div");
+        div.style.backgroundColor = "#E0D5F0";
+        div.style.padding = "2px";
+        div.style.margin = "5px";
+        div.style.border = "1px solid grey";
+        var str = character + character + character + character + character;
+        div.innerHTML = "「"+str+"」 typeset using our custom font: <span style='font-family: \""+fontname+"\";'>" + str + "</span>";
+        document.querySelector('#dynamic').appendChild(div);
+
+        // for good measure, what's the font's bytecode?
+        var div = document.createElement("div");
+        div.innerHTML = "Base64 code of the bespoke font used:<br><textarea style='width:60em; height:9em;'>"+
+                        font +
+                        "</textarea><br>Validate this using <a href='http://async5.org/ots/ots.html'>OTS online</a>";
+        document.querySelector('#dynamic').appendChild(div);
+      }
+    -->
+    </script>
+  </head>
+  <body>
+    <h1>Fontgenerator.js - dynamic font generation using JavaScript</h1>
+    
+    <p>Inspect the <a href="fontgenerator.js">fontgenerator.js</a> script.</p>
+    
+    <div style="border: 1px solid grey; padding: 10px;">
+
+      <p>This page generates a div that should contain the input-indicated character five times,
+      masked (=made to look invisible) using a dynamically generated bespoke font that encodes
+      that character as a zero-width glyph. You can verify that the text is actually there by 
+      copying the entire line in the purplish box, and pasting it in the base64 textarea below.</p>      
+
+      <input type="text" value="無" id="character">
+      <input type="button" onclick="useCharacter()" value="Generate">
+    
+      <div id="dynamic"></div>
+    </div>
+    
+    <h3>How does it work?</h3>
+    
+    <p>Following the OpenType specification, and earlier work on generating minimal TTF
+    fonts, fontgenerator.js generates the bytecode for a minimal TTF with a character-to-glyph
+    mapping for a single character (at the moment restricted to characters with codes between
+    0x0000 and 0xFFFF, due to the font sanitiser in Chrome and Firefox only supporting CMAP
+    subtable format 4, which does not allow characters with higher code points).
+    Since the bytecode for the minimal TTF is essentially static code, independent of the
+    character(s) the font models, everything but eight bytes in the byte code are actually
+    boilerplate code. This means we can generate these minimal fonts for any character we
+    like, by simply changing one value, encoded as a four byte value in only two places.</p>
+    
+    <p>Fontgenerator.js simple generates the boilerplate code, with your character's byte code
+    set in the right places, and then turns that byte code into ASCII string data using the
+    JavaScript <a href="https://developer.mozilla.org/en/DOM/window.btoa">btoa()</a> function,
+    which takes binary code, and converts it to BASE64-encoded ASCII text. This can then be
+    used in a data-URI so that we can load the font as if it were a real file using a CSS
+    <a href="https://developer.mozilla.org/en/CSS/@font-face">@font-face</a> rule.</p>
+    
+    <p>So when you hit "generate", the script actually generates a proper TTF font in
+    memory, converts its bytecode to a string, tells the browser to interpret the string
+    as a font resource, and then styles a text consisting solely of the character you
+    generated the font for. Because the font uses a zero-width glyph for the character,
+    this effectively makes the text zero pixels wide, and for all intents and purposes
+    invisible, while still being "real" text. Change the font to a normal, visible font
+    and it shows up like any other piece of text on the page.</p>
+    
+    <h3>Why is this useful?</h3>
+    
+    <p>This little bit of code was written to solve a problem that people were having
+    in the <a href="https://github.com/mozilla/pdf.js">PDF.js</a> project, where a
+    PDF file may have fonts embedded for rendering text with, but no way to tell whether
+    an extracted font has actually finished loading. Drawing the text onto the canvas
+    when the font isn't ready yet will not result in an error message, but instead
+    draws the text with the wrong font. Clearly, something that is undesirable when
+    rendering PDF files.
+    
+    Using the fonts that fontgenerator.js can generate, it is possible to style a piece
+    of sample text with "pdffont, bespokefont" and see whether the PDF font is done
+    loading by interval-checking how wide the text is. If it is zero width, the font
+    is not done loading yet. If it's not zero-width, the PDF's own font is available
+    and the real text can be rendered onto the canvas. The reason fontgenerator.js lets
+    you specify the character for the sample text is that not every font is guaranteed
+    to have the letter you hardcode, especially since PDF allows subset fonts. If your
+    text never uses the letter 'f', it simply won't save that letter in the PDF's copy
+    of the font. As such, you want to extract the font, find a letter it <strong>does</strong>
+    implement, and then verify loading has finished based on that letter, thus making
+    sure every font can be checked for, even if you don't know which letters it will
+    contain before opening the PDF.</p>
+  </body>
+</html>
