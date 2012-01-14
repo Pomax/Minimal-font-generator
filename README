@@ -25,6 +25,7 @@ and converts it to BASE64-encoded ASCII text. This can then
 be used in a data-URI so that we can load the font as if
 it were a real file using a CSS @font-face rule.
 
+
 WHY IS THIS USEFUL?
 
 This little bit of code was written to solve a problem that
@@ -57,6 +58,14 @@ implement, and then verify loading has finished based on
 that letter, thus making sure every font can be checked
 for, even if you don't know which letters it will contain
 before opening the PDF.
+
+
+DEMONSTRATOR
+
+A demonstrator page of this approach can be found at:
+
+  http://pomax.github.com/Minimal-font-generator/
+
 
 LICENSE INFORMATION
 
