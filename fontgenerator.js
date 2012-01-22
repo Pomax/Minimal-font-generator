@@ -144,7 +144,7 @@ TinyFontGenerator = {
     if(this.OS2data!==false) { return this.OS2data; }
 
     var data = "";
-    data += " 00 03";  // OS/2 table version 3 (OTS doesn't like version 4)
+    data += " 00 04";  // The current (Jan 2012) OS/2 table version is 4
     data += " 00 01";  // xAvgCharWidth
     data += " 00 64";  // weight class: 100 ("thin")
     data += " 00 01";  // width class: 1 ("ultra condensed")
