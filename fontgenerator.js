@@ -431,8 +431,9 @@ TinyFontGenerator = {
     var data = ""; 
     data += " 00 01 00 00";  // version 1
     data += " 00 00 00 00";  // italicAngle
-    data += " 00 00 00 00";  // underlinePosition
-    data += " 00 00 00 00";  // underlineThickness
+    data += " 00 00";        // underlinePosition
+    data += " 00 00";        // underlineThickness
+    data += " 00 00 00 00";  // isFixedPitch
     this.POSTdata = this.convertData(data);
     return this.POSTdata;
   },
