@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8"/>
     <title>tiny font generator</title>
-    <script type="text/javascript" src="https://raw.github.com/Pomax/Minimal-font-generator/master/fontgenerator.js"></script>
-    <script type="text/javascript">
-    <!--
+    <script src="fontgenerator.js"></script>
+    <script>
       var counter = 0;
+
       function useCharacter() {
         var character = document.querySelector("#character").value;
         var font = TinyFontGenerator.generateFont(character);
@@ -39,7 +39,6 @@
                         "</textarea><br>Validate this using <a href='http://async5.org/ots/ots.html?input="+font+"'>OTS online</a>";
         document.querySelector('#dynamic').appendChild(div);
       }
-    -->
     </script>
   </head>
   <body>
