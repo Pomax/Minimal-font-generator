@@ -142,7 +142,7 @@ TinyFontGenerator = {
     if(this.OS2data!==false) { return this.OS2data; }
 
     var data = "";
-    data += " 00 04";  // The current (Jan 2012) OS/2 table version is 4
+    data += " 00 01";  // The current (Jan 2012) OS/2 table version is 4
     data += " 00 01";  // xAvgCharWidth
     data += " 00 64";  // weight class: 100 ("thin")
     data += " 00 01";  // width class: 1 ("ultra condensed")
@@ -434,6 +434,11 @@ TinyFontGenerator = {
     data += " 00 00";        // underlinePosition
     data += " 00 00";        // underlineThickness
     data += " 00 00 00 00";  // isFixedPitch
+
+    data += " 00 00 00 00";  // Memory fields are irrelevant
+    data += " 00 00 00 00";  //  "
+    data += " 00 00 00 00";  //  "
+    data += " 00 00 00 00";  //  "
     this.POSTdata = this.convertData(data);
     return this.POSTdata;
   },

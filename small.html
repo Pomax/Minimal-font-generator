@@ -1,0 +1,1196 @@
+<!doctype html>
+<html>
+  <head>
+    <title>But... can I make it an even smaller font?</title>
+    <meta charset="utf-8" />
+    <style>
+      header {
+        h1 {
+          margin-bottom: 0;
+        }
+        h2 {
+          font-size: 0.7em;
+        }
+      }
+      headt,
+      maxp,
+      hmtx,
+      loca,
+      namet {
+        background-color: #ddf;
+      }
+      hhea,
+      os_2,
+      cmap,
+      glyf,
+      post {
+        background-color: #dfd;
+      }
+      pre {
+        background-color: #ffd;
+      }
+      new,
+      search,
+      replace {
+        color: #fff;
+      }
+      new {
+        background-color: #006;
+      }
+      search {
+        background-color: #600;
+      }
+      replace {
+        background-color: #060;
+      }
+      .note {
+        font-style: italic;
+        font-size: 1.1em;
+      }
+      #insertme {
+        font-family: "Empty Font";
+      }
+    </style>
+    <script>
+      (() => {
+        const b64 =
+          "AAEA3KAIA2wAgT1MvMgA7CsA3VmNtYXA8BBA3CxnbHlmA8TA4QaGVhZA8FA4NmhoZWEA7BeA3CRobXR4A8ZwA3GbG9jYQA7GkA3Bm1heHA8BrA3CBuYW1lA8cwA3gcG9zdA8HsA3IAABAAEAZAABA88QA20BAAMAAQA3wABAAgA3BAAEAAEA2BB//8A2BB////wAABA6BA15MQA2QA11BfDzz1A2gA28QA7EAAgA8BA4QA3EA33QA16IA4QA3IAAQABA6CA25IAHgADAAEECQABA6DAAEECQACAAIA6EA39=".replace(
+            /A(\d+)/g,
+            (_, a) => `A`.repeat(+a + 1),
+          );
+        const fontface = document.createElement("style");
+        fontface.textContent = `
+        @font-face {
+            font-family: 'Empty Font';
+            src: url('data:application/x-font-ttf;base64,${b64}') format('truetype');
+        }
+    `;
+        document.head.appendChild(fontface);
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="removeme">
+      You are viewing this page with JavaSCript disabled; the work on this page
+      was done in order to integrate it into the
+      <a href="http://processingjs.org">Processing.js</a> javascript library, so
+      if you want to see the final result, you'll have to enable javascript.
+    </div>
+
+    <script>
+      removeme.remove();
+    </script>
+
+    <header>
+      <h1>Let's make a sma<span id="insertme"></span>ll font</h1>
+      <h2>
+        Originally posted July 28<sup>th</sup>, 2011, last updated on June
+        10<sup>th</sup>, 2026
+      </h2>
+    </header>
+
+    <script>
+      insertme.textContent =
+        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+    </script>
+
+    <p class="note">
+      A story about creating a 524 byte TTF file, encoded as a 345 character
+      javascript function that generates its Base 64 equivalence string.
+    </p>
+
+    <h2>Let's get started</h2>
+
+    <p>
+      Chances are you already know what a font is. It's something you select in
+      a word processor, or text editor if you're hard core, and write your text
+      in. They're the things that make letters look different in documents, and
+      in today's world, the web. For the longest time the web's been a bit of a
+      limited font game, but in recent years "web fonts" have become more and
+      more popular. The ability to load the font YOU want to use, rather than
+      that "Times" font, or just "serif", has won a lot of people over (fun
+      fact: IE's been able to do this since version 4. I know, who would have
+      guessed, eh?)
+    </p>
+
+    <p>
+      What you probably don't know is that fonts are hell. There are a number of
+      common formats, and none of them are what you'd describe as "easy to
+      read". In order to make fonts small, the data inside a font has been
+      encoded in most spectacularly space-saving ways, after which a million and
+      one features were tacked on top because different groups needed additional
+      functionality from fonts. This includes things like right to left writing,
+      subroutines/substitutions so that compositional characters (such as nearly
+      all CJK characters) take up less space, vertical metrics for Asian
+      scripts, substitution pairs for letter combinations, which is the backbone
+      for written Arabian, the list goes on and on. If you are thinking about
+      going into fonts, from a programming perspective, rather than a design
+      perspective, I tip my hat to you; you are in for a rough ride.
+    </p>
+
+    <p>
+      However, should you preservere, you might end up where I am today: a head
+      full of knowledge about things most people stay away from, and a sudden
+      realisation that that thing you're trying to do is something you can
+      actually do - I need the smallest possible OpenType font avaible so I can
+      embed it into a web page in order to do font load detection... can I
+      simply make it myself?
+    </p>
+
+    <h2>Some back story</h2>
+
+    <p>
+      I've written my own OpenType font parser, with TrueType and Type2 support,
+      and while writing it I've learned many things about font technologies. I
+      used this thing for playing around with CJK character composition, and
+      then after a while fonts slowly sank back into the background. Then one
+      day, while talking about log visualisations someone mentioned using the
+      <a href="http://processing.org">Processing</a> programming language.
+      Having never heard of it, I looked it up, discovered it was about the best
+      programming language in the world for visualisations, and then dicovered
+      it had a javascript port, too, which got me hooked.
+    </p>
+
+    <p>
+      I started helping out with
+      <a href="http://processingjs.org"> Processing.js</a>, and after a while I
+      realised I could exploit the web's various technologies to mix
+      visualisation in browsers with my font parser in the backend for a much
+      more playful font interaction. And, of course, as these things go I became
+      a dev for Pjs and started looking more and more into its font
+      implementations for every font bug report we received. After we released
+      v1.2.3, font handling desperately needed a full rewrite and I found myself
+      back in a "fixing font things" position. And that brings us to today.
+    </p>
+
+    <p>
+      Today, I find myself in the position that we need to wait with starting a
+      Processing "sketch" (the Processing name for a program) on a web page
+      until all fonts that should be preloaded, have finished preloading. This
+      means we can't just wait for the browser to finished downloading them, but
+      we also have to wait for the browser to finish loading them into memory
+      for styling text on a page. If you think that waiting for the download
+      should be enough: fonts are relatively big, complicated things. It can
+      take a few hundred milliseconds between a font being done downloading and
+      being fully loaded in memory if it's a few hundred kb, but bigger,
+      professional fonts in four different styles means it can actually take
+      more than a second between 'download complete' and 'font available for
+      styling'.
+    </p>
+
+    <p>
+      I had already written a font detection tester page based on a tiny font,
+      to see whether I could detect client-side font availability by referencing
+      two divs, one with font-family "tiny", and one with font-family
+      "YourFontHere, tiny". A simply timeout loop made sure that as long as the
+      widths were the same, "YourFontHere" wasn't found, so it wasn't installed.
+      I could port that idea for detecting font-load-completion for @font-face
+      fonts, but the reference font I used was big. Over 50kb. And that's way
+      too big to bundle with a javascript library.
+    </p>
+
+    <h2>Let's get started: just use some font creation software</h2>
+
+    <p>
+      So we get to where we are now. I need something really small, with "never
+      used" tiny metrics, so the best place to start is my original tiny font.
+      It was made using <a href="https://fontforge.org">FontForge</a>, and has a
+      small em-quad setting (30 units) and a tiny glyph for a few letters (a
+      10x10 unit rectangular glyphs). This has been compacted (yay for
+      FontForge!) and saved as TTF. Since I used the same glyph for 97
+      characters in the lower ascii region, it's bigger than strictly necessary,
+      and comes out at a filesize of 66kb.
+    </p>
+
+    <h2>Is that small enough?</h2>
+
+    <p>
+      Honestly? Not really, that's bigger than the 50kb font I was using before,
+      so can we make things smaller? For instance, do we really need all those
+      letters? to be honest, we don't. So let's fire up
+      <a href="https://github.com/fonttools/fonttools">TTX</a> and kill
+      everything except the "A". That'll do, really. stripping everything not
+      ".notdef" and "A", then converting the .ttx file back to ttf shows a
+      massive reduction in size: a 1568 bytes font! That's pretty good, and
+      it'll load in Chrome, Firefox, Opera, Internet Explorer and Safari if you
+      try to use it in an @font-face rule, but... I know fonts, and even though
+      1568 sounds tiny, I read the
+      <a href="https://www.muppetlabs.com/~breadbox/software/tiny/teensy.html"
+        >"45 byte ELF executable"</a
+      >
+      article; I know I can probably at the very least halve its size with
+      "legal" changes to the file.
+    </p>
+
+    <h2>Pushing past 1568 bytes</h2>
+
+    <p>
+      So, back to the TTX xml. There's several CMAP entries, all for the same
+      letter. Do we need those? Basically: no we don't. If we only leave the
+      {platformID 3, platEncID 1, language 0} format 4 subtable, then things
+      still work. Excellent! Now the font's 1092 bytes.
+    </p>
+
+    <p>
+      But what are these mystery tables? "cvt", "gasp" and "FFTM" are all
+      <a
+        href="https://learn.microsoft.com/en-us/typography/opentype/spec/otff#tables-related-to-truetype-outlines"
+        >optional</a
+      >
+      tables. Let's just remove them. Now it's starting to get interesting,
+      because the new size is 1004 bytes, or less than 1kb. That's better, but
+      that still seems rather big given what we want this font to do, so set's
+      go prune the glyph definitions and see if we can fix some things there
+    </p>
+
+    <pre>
+  &lt;glyf&gt;
+    &lt;TTGlyph name=".notdef" xMin="1" yMin="0" xMax="9" yMax="15"&gt;
+      &lt;contour&gt;
+        &lt;pt x="1" y="0" on="1"/&gt;
+        &lt;pt x="1" y="15" on="1"/&gt;
+        &lt;pt x="9" y="15" on="1"/&gt;
+        &lt;pt x="9" y="0" on="1"/&gt;
+      &lt;/contour&gt;
+      &lt;contour&gt;
+        &lt;pt x="2" y="1" on="1"/&gt;
+        &lt;pt x="8" y="1" on="1"/&gt;
+        &lt;pt x="8" y="14" on="1"/&gt;
+        &lt;pt x="2" y="14" on="1"/&gt;
+      &lt;/contour&gt;
+      &lt;instructions&gt;&lt;assembly&gt;
+        &lt;/assembly&gt;&lt;/instructions&gt;
+    &lt;/TTGlyph&gt;
+
+    &lt;TTGlyph name="A" xMin="0" yMin="0" xMax="1" yMax="1"&gt;
+      &lt;contour&gt;
+        &lt;pt x="0" y="0" on="1"/&gt;
+        &lt;pt x="0" y="1" on="1"/&gt;
+        &lt;pt x="1" y="1" on="1"/&gt;
+        &lt;pt x="1" y="0" on="1"/&gt;
+      &lt;/contour&gt;
+      &lt;instructions&gt;&lt;assembly&gt;
+        &lt;/assembly&gt;&lt;/instructions&gt;
+    &lt;/TTGlyph&gt;
+  &lt;/glyf&gt;</pre
+    >
+
+    <p>
+      What? I didn't define a .notdef outline, what's it doing there? And not
+      only does it have some default outline, it's two compounds! Pruning time:
+    </p>
+
+    <pre>
+  &lt;glyf&gt;
+    &lt;TTGlyph name=".notdef" xMin="0" yMin="0" xMax="0" yMax="0"&gt;
+      &lt;contour&gt;
+        &lt;pt x="0" y="0" on="1"/&gt;
+      &lt;/contour&gt;
+      &lt;instructions&gt;&lt;assembly&gt;
+        &lt;/assembly&gt;&lt;/instructions&gt;
+    &lt;/TTGlyph&gt;
+
+    &lt;TTGlyph name="A" xMin="0" yMin="0" xMax="1" yMax="1"&gt;
+      &lt;contour&gt;
+        &lt;pt x="0" y="0" on="1"/&gt;
+        &lt;pt x="1" y="1" on="1"/&gt;
+      &lt;/contour&gt;
+      &lt;instructions&gt;&lt;assembly&gt;
+        &lt;/assembly&gt;&lt;/instructions&gt;
+    &lt;/TTGlyph&gt;
+  &lt;/glyf&gt;</pre
+    >
+
+    <p>
+      Much better: it's now 980 bytes. Basically the .notdef glyph
+      <strong>needs</strong> an outline, but since we'll never actually be using
+      it (we'll only use this font for the letter "A") it can have a nonsense
+      outline. The letter A, the one we'll actually be typesetting, needs at
+      least two coordinates for it to count as a real glyph, but that's still
+      barely any data so that's fine.
+    </p>
+
+    <p></p>
+
+    <p>So... what else can we do...? Wait a minute, what's this NAME table?</p>
+
+    <pre>
+  &lt;name&gt;
+    &lt;namerecord nameID="0" platformID="1" platEncID="0" langID="0x0"&gt;
+      There is no copyright on this font.
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="1" platformID="1" platEncID="0" langID="0x0"&gt;
+      Empty30
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="2" platformID="1" platEncID="0" langID="0x0"&gt;
+      Medium
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="3" platformID="1" platEncID="0" langID="0x0"&gt;
+      FontForge 2.0 : Empty30 : 5-10-2010
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="4" platformID="1" platEncID="0" langID="0x0"&gt;
+      Empty30
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="5" platformID="1" platEncID="0" langID="0x0"&gt;
+      Version 001.000 
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="6" platformID="1" platEncID="0" langID="0x0"&gt;
+      Empty30
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="0" platformID="3" platEncID="1" langID="0x409"&gt;
+      There is no copyright on this font.
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="1" platformID="3" platEncID="1" langID="0x409"&gt;
+      Empty30
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="2" platformID="3" platEncID="1" langID="0x409"&gt;
+      Medium
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="3" platformID="3" platEncID="1" langID="0x409"&gt;
+      FontForge 2.0 : Empty30 : 5-10-2010
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="4" platformID="3" platEncID="1" langID="0x409"&gt;
+      Empty30
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="5" platformID="3" platEncID="1" langID="0x409"&gt;
+      Version 001.000 
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="6" platformID="3" platEncID="1" langID="0x409"&gt;
+      Empty30
+    &lt;/namerecord&gt;
+  &lt;/name&gt;</pre
+    >
+
+    <p>
+      That's a LOT of plain text information! ... You know what, let's just
+      empty all those strings and see what happens:
+    </p>
+
+    <pre>
+  &lt;name&gt;
+    &lt;namerecord nameID="0" platformID="1" platEncID="0" langID="0x0"&gt;
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="1" platformID="1" platEncID="0" langID="0x0"&gt;
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="2" platformID="1" platEncID="0" langID="0x0"&gt;
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="3" platformID="1" platEncID="0" langID="0x0"&gt;
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="4" platformID="1" platEncID="0" langID="0x0"&gt;
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="5" platformID="1" platEncID="0" langID="0x0"&gt;
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="6" platformID="1" platEncID="0" langID="0x0"&gt;
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="0" platformID="3" platEncID="1" langID="0x409"&gt;
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="1" platformID="3" platEncID="1" langID="0x409"&gt;
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="2" platformID="3" platEncID="1" langID="0x409"&gt;
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="3" platformID="3" platEncID="1" langID="0x409"&gt;
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="4" platformID="3" platEncID="1" langID="0x409"&gt;
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="5" platformID="3" platEncID="1" langID="0x409"&gt;
+    &lt;/namerecord&gt;
+    &lt;namerecord nameID="6" platformID="3" platEncID="1" langID="0x409"&gt;
+    &lt;/namerecord&gt;
+  &lt;/name&gt;</pre
+    >
+
+    <p>Apparently, that's fine?</p>
+
+    <p>
+      So how are we doing on size? 688 bytes! Now we're getting somewhere!
+      Sadly, that's also roughly the furthest we're going to get without
+      removing things that breaks the font in Opera (first) or IE (a bit later).
+      So let's do some parallel thinking. Instead of linking to this font, it's
+      small enough to actually inject into a page using a data-URI, which
+      requires the data is BASE64 encoded. Funny thing about BASE64: it encodes
+      stretches of zero-bytes as sequences of the letter "A". So, the more zero
+      bytes we can effect in the TTF file - without it breaking any of the
+      browsers - the more we can compress the BASE64 string,
+      <strong>even if we can't make the ttf file itself smaller</strong>
+    </p>
+
+    <h2>Pushing past 688 bytes</h2>
+
+    <p>
+      As it turns out, almost EVERY value in the ttx dump can be set to zero. If
+      you ever had to wade through the OpenType spec, this is fantastically
+      fascinating. Some values, however, must remain real values. Although they
+      don't have to necessarily be values that you would consider 'correct'.
+    </p>
+
+    <p>Let's update the header table first:</p>
+
+    <pre>
+  &lt;head&gt;
+    &lt;tableVersion value="1.0"/&gt;
+    &lt;fontRevision value="1.0"/&gt;
+    &lt;checkSumAdjustment value="0x908bda5e"/&gt;
+    &lt;magicNumber value="0x5f0f3cf5"/&gt;
+    &lt;flags value="00000000 00001011"/&gt;
+    &lt;unitsPerEm value="32"/&gt;
+    &lt;created value="Mon Jan 00 00:00:00 0000"/&gt;
+    &lt;modified value="Mon Jan 00 00:00:00 0000"/&gt;
+    &lt;xMin value="0"/&gt;
+    &lt;yMin value="0"/&gt;
+    &lt;xMax value="0"/&gt;
+    &lt;yMax value="0"/&gt;
+    &lt;macStyle value="00000000 00000000"/&gt;
+    &lt;lowestRecPPEM value="0"/&gt;
+    &lt;fontDirectionHint value="0"/&gt;
+    &lt;indexToLocFormat value="0"/&gt;
+    &lt;glyphDataFormat value="0"/&gt;
+  &lt;/head&gt;</pre
+    >
+
+    <p>
+      Note that we're basically lying here. the xMax and yMax values are 1, but
+      an intelligent font engine will get those values from the glyph it's
+      actually rendering, so we set them to 0. Zero bytes are nice. We leave the
+      first six values as they are, because they're important, but the rest?
+      Zeroes, all the way down.
+    </p>
+
+    <p>Next up, MAXP.</p>
+    <p></p>
+
+    <pre>
+  &lt;maxp&gt;
+    &lt;!-- Most of this table will be recalculated by the compiler --&gt;
+    &lt;tableVersion value="0x00000"/&gt;
+    &lt;numGlyphs value="0"/&gt;
+    &lt;maxPoints value="0"/&gt;
+    &lt;maxContours value="0"/&gt;
+    &lt;maxCompositePoints value="0"/&gt;
+    &lt;maxCompositeContours value="0"/&gt;
+    &lt;maxZones value="0"/&gt;
+    &lt;maxTwilightPoints value="0"/&gt;
+    &lt;maxStorage value="0"/&gt;
+    &lt;maxFunctionDefs value="0"/&gt;
+    &lt;maxInstructionDefs value="0"/&gt;
+    &lt;maxStackElements value="0"/&gt;
+    &lt;maxSizeOfInstructions value="0"/&gt;
+    &lt;maxComponentElements value="0"/&gt;
+    &lt;maxComponentDepth value="0"/&gt;
+  &lt;/maxp&gt;</pre
+    >
+
+    <p>
+      While TTX says that most of this table will be recalculated, it doesn't
+      hurt to make sure that the values it doesn't recalculate are zero. Because
+      that's still a font that is accepted by all browsers.
+    </p>
+
+    <p>
+      Then, the OS/2 table. If you are old enough to remember the OS/2 Warp
+      operating system, this name might be deceiving. Yes, that's what it was
+      originally for, but the data in it is so damn useful that it would have
+      been really silly to get rid of it. Downside: this is a required table and
+      we can't just remove it. Don't worry, I tried. It doesn't work.
+    </p>
+
+    <p>
+      But we CAN set almost every damn value in it to zero, and it'll still
+      count as a usable font. For a very specific purpose, but legal in all
+      browsers, and that's what matters. In fact, except for the following
+      values, everything else is 0. Including the entire "panose" structure:
+    </p>
+
+    <pre>
+  &lt;OS_2&gt;
+    &lt;version value="1"/&gt;
+    &lt;xAvgCharWidth value="512"/&gt;
+    &lt;usWeightClass value="512"/&gt;
+    &lt;usWidthClass value="1"/&gt;
+    &lt;achVendID value="noop"/&gt;
+    &lt;fsSelection value="00000000 01000000"/&gt;
+    &lt;fsFirstCharIndex value="35"/&gt;
+    &lt;fsLastCharIndex value="35"/&gt;
+    &lt;sTypoAscender value="1"/&gt;
+    &lt;usWinAscent value="1"/&gt;
+  &lt;/OS_2&gt;</pre
+    >
+
+    <p>
+      Wait, did I just set the ulUnicodeRange and ulCodePageRange values to
+      zero? And that's legal? ... wow. But, sure enough none of the browsers
+      complain, and they apply the font just fine.
+    </p>
+
+    <p>
+      That basically leaves HMTX and POST. The first is really simple, and has
+      two entries, one for ".notdef" and one for "A". Just to keep with the
+      "lots of zeroes" idea, we set the width and lsb to zero, and job's done.
+      Now for POST...
+    </p>
+
+    <p>
+      POST is an annoying table. It provides the a bunch of 32 bit values that
+      help truly ancient printers do their job. Obviously we are not interested
+      in printing text with this font (we're literally trying to achieve text
+      that takes up zero space), but you can't omit it: every font parser in
+      existence will flag the font as corrupt if you do. So: zeroes everywhere.
+    </p>
+
+    <pre>
+  &lt;post&gt;
+    &lt;formatType value="1.0"/&gt;
+    &lt;italicAngle value="0.0"/&gt;
+    &lt;underlinePosition value="0"/&gt;
+    &lt;underlineThickness value="0"/&gt;
+    &lt;isFixedPitch value="0"/&gt;
+    &lt;minMemType42 value="0"/&gt;
+    &lt;maxMemType42 value="0"/&gt;
+    &lt;minMemType1 value="0"/&gt;
+    &lt;maxMemType1 value="0"/&gt;
+  &lt;/post&gt;</pre
+    >
+
+    <p>
+      It's going to have to do. We now have a font that is so small, I can just
+      show you what the byte layout is:
+    </p>
+
+    <pre>
+00 01 00 00 00 0A 00 80 | 00 03 00 20 4F 53 2F 32 | 71 95 70 D4 00 00 01 28 | 00 00 00 56 63 6D 61 70 | 
+00 0C 00 74 00 00 01 88 | 00 00 00 2C 67 6C 79 66 | 01 04 62 39 00 00 01 BC | 00 00 00 24 68 65 61 64 | 
+DE 06 54 5C 00 00 00 AC | 00 00 00 36 68 68 65 61 | 00 04 00 00 00 00 00 E4 | 00 00 00 24 68 6D 74 78 | 
+00 00 00 00 00 00 01 80 | 00 00 00 06 6C 6F 63 61 | 00 12 00 08 00 00 01 B4 | 00 00 00 06 6D 61 78 70 | 
+00 04 00 02 00 00 01 08 | 00 00 00 20 6E 61 6D 65 | 00 DF 1C AB 00 00 01 E0 | 00 00 00 B0 70 6F 73 74 | 
+00 03 00 00 00 00 02 90 | 00 00 00 20 00 01 00 00 | 00 01 00 00 02 48 13 63 | 5F 0F 3C F5 00 0B 00 20 | 
+00 00 00 00 B4 91 A2 80 | 00 00 00 00 CA 57 74 C6 | 00 00 00 00 00 01 00 01 | 00 00 00 00 00 00 00 00 | 
+00 00 00 00 00 01 00 00 | 00 01 00 00 00 00 00 00 | 00 00 FF FF 00 01 00 00 | 00 00 00 00 00 00 00 00 | 
+00 00 00 00 00 00 00 01 | 00 01 00 00 00 02 00 02 | 00 01 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 
+00 00 00 00 00 00 00 00 | 00 01 02 00 02 00 00 01 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 
+00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 
+00 00 6E 6F 6F 70 00 40 | 00 23 00 23 00 01 00 00 | 00 00 00 01 00 00 00 00 | 00 00 00 00 00 00 00 00 | 
+00 00 00 00 00 00 00 00 | 00 00 00 01 00 03 00 01 | 00 00 00 0C 00 04 00 20 | 00 00 00 04 00 04 00 01 | 
+00 00 00 41 FF FF 00 00 | 00 41 FF FF FF C0 00 01 | 00 00 00 00 00 00 00 08 | 00 12 00 00 00 01 00 00 | 
+00 00 00 00 00 00 00 00 | 00 00 31 00 00 01 00 00 | 00 00 00 01 00 01 00 01 | 00 00 31 37 01 01 00 00 | 
+00 00 00 0E 00 AE 00 01 | 00 00 00 00 00 00 00 00 | 00 00 00 01 00 00 00 00 | 00 01 00 00 00 00 00 01 | 
+00 00 00 00 00 02 00 00 | 00 00 00 01 00 00 00 00 | 00 03 00 00 00 00 00 01 | 00 00 00 00 00 04 00 00 | 
+00 00 00 01 00 00 00 00 | 00 05 00 00 00 00 00 01 | 00 00 00 00 00 06 00 00 | 00 00 00 03 00 01 04 09 | 
+00 00 00 00 00 00 00 03 | 00 01 04 09 00 01 00 00 | 00 00 00 03 00 01 04 09 | 00 02 00 02 00 00 00 03 | 
+00 01 04 09 00 03 00 00 | 00 00 00 03 00 01 04 09 | 00 04 00 00 00 00 00 03 | 00 01 04 09 00 05 00 00 | 
+00 00 00 03 00 01 04 09 | 00 06 00 00 00 00 00 40 | 00 03 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 
+00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 |</pre
+    >
+
+    <p>
+      That's it. That's an entire OpenType with TrueType outline font. But there
+      are still parts there that look like they'd be much nicer if some "01"
+      entries were "00". Let's whip out a hex editor and get cracking.
+    </p>
+
+    <p>The font layout at this point is as follows:</p>
+
+    <pre>
+  header:
+    version:  0001.0000 , number of tables: 10, search range: 128, entry selector: 3, range shift: 32
+
+  tables:
+    name: head, checkSum: -570010532, offset: 172, length: 54
+    name: hhea, checkSum:     262144, offset: 228, length: 36
+    name: maxp, checkSum:     262146, offset: 264, length: 32
+    name: OS/2, checkSum: 1905619156, offset: 296, length: 86
+    name: hmtx, checkSum:          0, offset: 384, length: 6
+    name: cmap, checkSum:     786548, offset: 392, length: 44
+    name: loca, checkSum:    1179656, offset: 436, length: 6
+    name: glyf, checkSum:   17064505, offset: 444, length: 36
+    name: name, checkSum:   14621867, offset: 480, length: 176
+    name: post, checkSum:     196608, offset: 656, length: 32</pre
+    >
+
+    <p>
+      So let's do some marking, coloring tables alternatingly blue and green:
+    </p>
+
+    <pre>00 01 00 00 00 0A 00 80 | 00 03 00 20 4F 53 2F 32 | 71 95 70 D4 00 00 01 28 | 00 00 00 56 63 6D 61 70 | 
+00 0C 00 74 00 00 01 88 | 00 00 00 2C 67 6C 79 66 | 01 04 62 39 00 00 01 BC | 00 00 00 24 68 65 61 64 | 
+DE 06 54 5C 00 00 00 AC | 00 00 00 36 68 68 65 61 | 00 04 00 00 00 00 00 E4 | 00 00 00 24 68 6D 74 78 | 
+00 00 00 00 00 00 01 80 | 00 00 00 06 6C 6F 63 61 | 00 12 00 08 00 00 01 B4 | 00 00 00 06 6D 61 78 70 | 
+00 04 00 02 00 00 01 08 | 00 00 00 20 6E 61 6D 65 | 00 DF 1C AB 00 00 01 E0 | 00 00 00 B0 70 6F 73 74 | 
+00 03 00 00 00 00 02 90 | 00 00 00 20 <headt>00 01 00 00 | 00 01 00 00 02 48 13 63 | 5F 0F 3C F5 00 0B 00 20 | 
+00 00 00 00 B4 91 A2 80 | 00 00 00 00 CA 57 74 C6 | 00 00 00 00 00 01 00 01 | 00 00 00 00 00 00 00 00 | 
+00 00 00 00</headt> <hhea>00 01 00 00 | 00 01 00 00 00 00 00 00 | 00 00 FF FF 00 01 00 00 | 00 00 00 00 00 00 00 00 | 
+00 00 00 00 00 00 00 01</hhea> | <maxp>00 01 00 00 00 02 00 02 | 00 01 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 
+00 00 00 00 00 00 00 00</maxp> | <os_2>00 01 02 00 02 00 00 01 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 
+00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 
+00 00 6E 6F 6F 70 00 40 | 00 23 00 23 00 01 00 00 | 00 00 00 01 00 00 00 00 | 00 00 00 00 00 00 00 00</os_2> | 
+<hmtx>00 00 00 00 00 00</hmtx> <cmap>00 00 | 00 00 00 01 00 03 00 01 | 00 00 00 0C 00 04 00 20 | 00 00 00 04 00 04 00 01 | 
+00 00 00 41 FF FF 00 00 | 00 41 FF FF FF C0 00 01 | 00 00 00 00</cmap> <loca>00 00 00 08 | 00 12</loca> <glyf>00 00 00 01 00 00 | 
+00 00 00 00 00 00 00 00 | 00 00 31 00 00 01 00 00 | 00 00 00 01 00 01 00 01 | 00 00 31 37 01 01 00 00</glyf> | 
+<namet>00 00 00 0E 00 AE 00 01 | 00 00 00 00 00 00 00 00 | 00 00 00 01 00 00 00 00 | 00 01 00 00 00 00 00 01 | 
+00 00 00 00 00 02 00 00 | 00 00 00 01 00 00 00 00 | 00 03 00 00 00 00 00 01 | 00 00 00 00 00 04 00 00 | 
+00 00 00 01 00 00 00 00 | 00 05 00 00 00 00 00 01 | 00 00 00 00 00 06 00 00 | 00 00 00 03 00 01 04 09 | 
+00 00 00 00 00 00 00 03 | 00 01 04 09 00 01 00 00 | 00 00 00 03 00 01 04 09 | 00 02 00 02 00 00 00 03 | 
+00 01 04 09 00 03 00 00 | 00 00 00 03 00 01 04 09 | 00 04 00 00 00 00 00 03 | 00 01 04 09 00 05 00 00 | 
+00 00 00 03 00 01 04 09 | 00 06 00 00 00 00 00 40</namet> | <post>00 03 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 
+00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00</post> |</pre>
+
+    <p>
+      Okay, so now that things are readable, let's get byte-whacking. First,
+      let's deal with that HEAD table. There are lots of bytes that represent
+      strings. It would be nice if we could zero those, but sadly, we can't. The
+      HEAD table is pretty much invulnerable when it comes to byte sniping.
+      Moving on, let's try the HHEA table instead. This is its layout:
+    </p>
+
+    <p></p>
+
+    <pre>
+  00 01 00 00 version number "01.00" - we can't touch this
+        00 01 Ascender... this can be made 0
+        00 00
+        00 00
+        00 00
+        00 00
+        FF FF minRightSideBearing... this can be made 0
+        00 01 xMaxExtent... we can lie, and make this 0
+        00 00
+        00 00
+        00 00
+        00 00
+        00 00
+        00 00
+        00 00
+        00 00
+        00 01 numberOfHMetrics - we can't touch this either  </pre
+    >
+
+    <p>
+      As long as we don't touch the version number and the number of metrics, we
+      can create a nice strech of zeroes. On to the MAXP table.
+    </p>
+
+    <pre>
+  00 01 00 00 version number "01.00" - we don't want to touch this
+        00 02 numGlyphs
+        00 02 maxPoints
+        00 01 maxContours
+        00 00
+        .. ..
+        00 00  </pre
+    >
+
+    <p>
+      Sadly, we can't touch these values either. At least not without breaking
+      the font in Opera. Boo! Ohwell, onward. And by onward, I mean let's skip
+      OS/2, because it's too important. And HMTX is already all zeroes. We can't
+      touch CMAP, because all the information is about where to find the outline
+      data, so on to LOCA. Here's where things get interesting.
+    </p>
+
+    <p>
+      LOCA is the "Location to Index" table. It says which offset, relative to
+      the beginning of the GLYF table, to use for which glyph. It currently
+      looks like this:
+    </p>
+
+    <pre>
+    00 00
+    00 08
+    00 12  </pre
+    >
+
+    <p>
+      But... if we want all the glyphs to look the same, can we just make them
+      all 00? Wouldn't that make everything point to glyph 0? In theory, yes.
+      But sadly this time Opera, Chrome and Firefox no longer consider this a
+      legal font. So LOCA stays the same. We can't make it 00 00 00 08 00 08
+      either, because then Opera refuses to load it. Damn you, browsers.
+    </p>
+
+    <p>Next up, the GLYF table. We're not touching that.</p>
+
+    <p>
+      So that leaves the NAME and POST tables. Last one first: There is an
+      annoying "03" element that we'd like to set to "00". Sadly for us, this
+      time Chrome complains. So POST stays the way it is.
+    </p>
+
+    <p>That leaves NAME...</p>
+
+    <pre>
+00 00   table format 0. we don't touch his.
+00 0E   number of entries in this table - 14
+00 AE   start of the "strings" section for this table: (174 - 6) bytes from here</pre
+    >
+
+    <p>
+      this is then followed by "name records", which consists of six 16bit
+      values: {platformID, encodingID, languageID, nameID, Length, offset}. In
+      order to make this table compact, all strings are stored in the last part
+      of the table, and entries that use the same string simply point to the
+      same byte position in that last section.
+    </p>
+
+    <pre>
+ 1) 00 01 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+ 2) 00 01 | 00 00 | 00 00 | 00 01 | 00 00 | 00 00
+ 3) 00 01 | 00 00 | 00 00 | 00 02 | 00 00 | 00 00
+ 4) 00 01 | 00 00 | 00 00 | 00 03 | 00 00 | 00 00
+ 5) 00 01 | 00 00 | 00 00 | 00 04 | 00 00 | 00 00
+ 6) 00 01 | 00 00 | 00 00 | 00 05 | 00 00 | 00 00
+ 7) 00 01 | 00 00 | 00 00 | 00 06 | 00 00 | 00 00
+ 8) 00 03 | 00 01 | 04 09 | 00 00 | 00 00 | 00 00
+ 9) 00 03 | 00 01 | 04 09 | 00 01 | 00 00 | 00 00
+10) 00 03 | 00 01 | 04 09 | 00 02 | 00 02 | 00 00
+11) 00 03 | 00 01 | 04 09 | 00 03 | 00 00 | 00 00
+12) 00 03 | 00 01 | 04 09 | 00 04 | 00 00 | 00 00
+13) 00 03 | 00 01 | 04 09 | 00 05 | 00 00 | 00 00
+14) 00 03 | 00 01 | 04 09 | 00 06 | 00 00 | 00 00
+    00 40</pre
+    >
+
+    <p>
+      the "00 40" at the end is the entire string table. Remember, we had to set
+      a version, and picked "@", which was ascii character 0x40... there it is.
+      So immediately, let's set that value "02" for record 10 to "00", and move
+      the "40" up. Excellent! Except now it won't work in Opera. What if we just
+      keep the record as is, but set the string table to 00 00?
+    </p>
+
+    <p>
+      Well, turns out that's just fine. Removing the value in the TTX xml wasn't
+      allowed, but setting it to zero bytes, as long as it's there, is perfectly
+      acceptable.
+    </p>
+
+    <p>
+      But what about those useless records? Can we just carpet-bomb them with
+      zeroes? Well... yes O_o
+    </p>
+
+    <pre>
+ 1) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+ 2) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+ 3) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+ 4) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+ 5) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+ 6) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+ 7) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+ 8) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+ 9) 00 03 | 00 01 | 04 09 | 00 01 | 00 00 | 00 00
+10) 00 03 | 00 01 | 04 09 | 00 02 | 00 02 | 00 00
+11) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+12) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+13) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+14) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+    00 00</pre
+    >
+
+    <p>
+      Holy something from somewhere! Wait, doesn't that mean there are only 2
+      records? 9, and 10? Let's go and prune this table so that it looks like
+      this:
+    </p>
+
+    <pre>
+    00 00   (table format 0)
+    00 02   (2 entries in this table)
+    00 1E   (start of the "strings" section for this table: 0 + 6 + 24 = 30 = 0x1E)
+ 1) 00 03 | 00 01 | 04 09 | 00 01 | 00 00 | 00 00
+ 2) 00 03 | 00 01 | 04 09 | 00 02 | 00 02 | 00 00
+    00 00</pre
+    >
+
+    <p>
+      Note that as of this change, this font is can no longer be converted to
+      .ttx and then back to .ttf, because as far as TTX is concerned, the name
+      table is now malformed. Even though technically it isn't.
+    </p>
+
+    <p>
+      Of course, this change this will move the POST table up, so we need to
+      make sure that we correct its offset value. And the checksum for the NAME
+      table will now fail, so we need to make sure it's right:
+    </p>
+
+    <pre>
+  NAME: 00 00 00 02 | 00 1E 00 03 | 00 01 04 09 | 00 01 00 00 | 00 00 00 03 | 00 01 04 09 | 00 02 00 02 | 00 00 00 00
+  offset: 480
+  length: 32
+  checksum: ...</pre
+    >
+
+    <p>
+      How do we calculate the checksum? Thankfully the OpenType specification is
+      really clear on this:
+    </p>
+
+    <pre>
+  Table checksums are the unsigned sum of the longs of a given table.
+  In C, the following function can be used to determine a checksum:
+
+  ULONG CalcTableChecksum(ULONG *Table, ULONG Length)
+  {
+    ULONG Sum = 0L;
+    ULONG *Endptr = Table+((Length+3) &amp; ~3) / sizeof(ULONG);
+    while (Table &lt; EndPtr)
+      Sum += *Table++;
+    return Sum;
+  }</pre
+    >
+
+    <p>
+      Fair enough. It's only 32 bytes, or 8 ULONG values, so the chucksem is the
+      sum of these eight values. Let's just do this by hand: 0xSUM = [2 + 1E0003
+      + 10409 + 10000 + 3 + 10409 + 20002] == 0x23081C (= 2295836 decimal).
+    </p>
+
+    <pre>
+  NAME: 00 00 00 02 00 1E 00 03 00 01 04 09 00 01 00 00 00 00 00 03 00 01 04 09 00 02 00 02 00 00 00 00
+  checksum: 2295836 (= [00 23 08 1C])
+  offset: 480
+  length: 32 (= 0x20)
+  
+  POST: content is the same
+  checksum: the same as before
+  offset: 656 - (176-32) = 512 (=0x200)
+  length: the same as before</pre
+    >
+
+    <p>
+      Does this still work? You bet. And it kills off loads of data. We now have
+      a 544 byte OpenType font with truetype outlines that is accepted by all
+      five browsers!
+    </p>
+
+    <h2>...did we actually need to do that?</h2>
+
+    <p>
+      But wait... is that checksum actually necessary? What if I just set all of
+      them to zero? That would create some more repetetive data, right? Sure
+      enough, it turns out the checksums are like traffic lights - they're more
+      of a guideline that you can complete ignore when it's safe to do so. Since
+      fonts can be huge, and verifying that every table in a font matches its
+      checksum can take seconds for fonts (average CJK font size on my computer:
+      12MB), browsers are (rightly) not going to bother with verifying this
+      value.
+    </p>
+
+    <p>
+      Here's where things get annoying. While you'd think that font engines dont
+      rely on the order in which the tables are indicated in the header, since
+      they're not guaranteed to be sequential, it turns out that they don't like
+      it when you start to mark table offsets so that the content overlaps with
+      other tables. This sucks, because we could easily move the HMTX table to
+      offset [01 03], saving 6 bytes, and alter the POST table so that it's
+      version [00 01] instead of [00 03], which would make it identical, byte
+      for byte, to the MAXP table, so we could have set its offset to the same
+      as MAXP. That would have saved us another 32 bytes.
+    </p>
+
+    <p>
+      Of course, because setting the POST table to [00 01] still makes the data
+      more repetitive, we add that change.
+    </p>
+
+    <h2>Getting "creative" with our bytes</h2>
+
+    <p>
+      Finally, we also optimise the OS/2 table. I didn't want to do this
+      earlier, because it's a pretty fragile table, but at this point I've run
+      out of things I can do to the font by reading the spec, so it's "try and
+      see what happens" time.
+    </p>
+
+    <p>
+      First, we set the xAvgCharWidth to zero. This is legal (if very strange),
+      and improves compressibility.
+    </p>
+
+    <p>
+      Then we set the usWeightClass to one, which is the lowest non-zero value
+      we can legally assign it.
+    </p>
+
+    <p>
+      We also blank the Font Vendor Identification string. Leaving it blank in
+      TTX results in the string "noop" in the byte code, but since it's not
+      referenced, we can replace this with [00 00 00 00] and further improve
+      compressibility.
+    </p>
+
+    <p>
+      We then unset all the fsSelection bits, because they are irrelevant. This
+      font will never be used in a classification system, so the content of the
+      category bits are arbitrary. That's two more zero bytes.
+    </p>
+
+    <p>
+      Continuing on, we set the typographic ascender to zero. Its main use is to
+      detemine a correct default line height, and as this font will never be
+      used for mult-line content, an effective line height of zero is just fine.
+    </p>
+
+    <p>
+      Finally, there was the suggestion from the OpenType mailing list to try
+      using a version 0 OS/2 table. This version is much, much older, but also
+      much smaller. Oddly enough, or perhaps annoyingly enough, none of the
+      browsers respect the OS/2 table version number, and they assume that it's
+      version 5 (which uses byte 00 04... don't ask). Manually setting it to [00
+      00] causes validation to fail, but we can set it to [00 01] at least.
+    </p>
+
+    <p>
+      We now have a 524 byte TTF that will compress quite ridiculously well.
+      Stand-alone gzipping using -9 turns it into a 242 byte file, so let's see
+      how small we can get it if we want it compressed in a way that we can just
+      inline in a web page!
+    </p>
+
+    <h2>Putting it on a web page - Base 64 and beyond</h2>
+
+    <p>We now have our base font, and it's tiny, only taking up 524 bytes:</p>
+
+    <pre>
+00 01 00 00 00 0a 00 80 | 00 03 00 20 4f 53 2f 32 | 00 00 00 00 00 00 00 ac | 00 00 00 56 63 6d 61 70
+00 00 00 00 00 00 01 04 | 00 00 00 2c 67 6c 79 66 | 00 00 00 00 00 00 01 30 | 00 00 00 10 68 65 61 64
+00 00 00 00 00 00 01 40 | 00 00 00 36 68 68 65 61 | 00 00 00 00 00 00 01 78 | 00 00 00 24 68 6d 74 78
+00 00 00 00 00 00 01 9c | 00 00 00 06 6c 6f 63 61 | 00 00 00 00 00 00 01 a4 | 00 00 00 06 6d 61 78 70
+00 00 00 00 00 00 01 ac | 00 00 00 20 6e 61 6d 65 | 00 00 00 00 00 00 01 cc | 00 00 00 20 70 6f 73 74
+00 00 00 00 00 00 01 ec | 00 00 00 20 00 01 00 01 | 00 64 00 01 00 00 00 00 | 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 01 00 | 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 01 | 00 03 00 01 00 00 00 0c | 00 04 00 20 00 00 00 04 | 00 04 00 01 00 00 00 41
+ff ff 00 00 00 41 ff ff | ff c0 00 01 00 00 00 00 | 00 01 00 00 00 00 00 00 | 00 00 00 00 00 00 31 00
+00 01 00 00 00 00 00 00 | 00 00 00 00 5f 0f 3c f5 | 00 00 20 00 00 00 00 00 | 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 | 01 00 00 00 00 00 00 01 | 00 02 00 00 00 00 00 00 | 00 01 00 00 00 01 00 00
+00 01 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 01 00 00 00 00
+00 00 00 00 00 00 00 00 | 00 08 00 00 00 01 00 00 | 00 02 00 01 00 01 00 00 | 00 00 00 02 00 00 00 00
+00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 02 | 00 1e 00 03 00 01 04 09 | 00 01 00 00 00 00 00 03 
+00 01 04 09 00 02 00 02 | 00 00 00 00 00 01 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 | 00 00 00 00</pre
+    >
+
+    <p>
+      That's a complete TTF file. But see all those zeroes? Let's turn those
+      into A's by encoding this binary file using BASE64 so that it can be used
+      in a data-URI, embedded on a webpage.
+    </p>
+
+    <pre>
+AAEAAAAKAIAAAwAgT1MvMgAAAAAAAACsAAAAVmNtYXAAAAAAAAABBAAAACxnbHlmAAAAAAAAATAAAAAQaGVhZAAAAAAAAAFAAAAAN
+mhoZWEAAAAAAAABeAAAACRobXR4AAAAAAAAAZwAAAAGbG9jYQAAAAAAAAGkAAAABm1heHAAAAAAAAABrAAAACBuYW1lAAAAAAAAAc
+wAAAAgcG9zdAAAAAAAAAHsAAAAIAABAAEAZAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAABAAMAAQAAAAwABAAgAAAABAAEAAEAAABB//8AAABB////wAABAAAA
+AAABAAAAAAAAAAAAAAAAMQAAAQAAAAAAAAAAAABfDzz1AAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAEAAgAAAAAAAAABA
+AAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAIAAAAAQAAAAIAAQABAAAAAAACAAAAAAAAAAAAAA
+AAAAAAAAAAAAIAHgADAAEECQABAAAAAAADAAEECQACAAIAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</pre
+    >
+
+    <p>
+      That's a 700 byte string, which seems way more than the TTF file we
+      started with... but it's hard to miss all that repetition in the string.
+      You can see why making as many values 00 as possible was a good idea:
+      there are some long stretches of A in there, and that means we can save a
+      lot of space by reversibly replacing them with shorter strings.
+    </p>
+
+    <p>
+      For example: there are very, <em>very</em> few numbers in the Base 64
+      string, and not a single digit follows the letter "A", so we could simply
+      collapse all those stretches of "AAA..." with a single "A" and then the
+      number of repetitions, and then use a regex replace to get the original
+      string back:
+    </p>
+
+    <pre>
+AAEA3KAIA2wAgT1MvMgA7CsA3VmNtYXA8BBA3CxnbHlmA8TA4QaGVhZA8FA4NmhoZWEA7BeA3CRobXR4A8ZwA3GbG9jYQA7GkA3Bm
+1heHA8BrA3CBuYW1lA8cwA3gcG9zdA8HsA3IAABAAEAZAABA88QA20BAAMAAQA3wABAAgA3BAAEAAEA2BB//8A2BB////wAABA6BA
+15MQA2QA11BfDzz1A2gA28QA7EAAgA8BA4QA3EA33QA16IA4QA3IAAQABA6CA25IAHgADAAEECQABA6DAAEECQACAAIA6EA39=</pre
+    >
+
+    <p>
+      And now we have a 300 byte string that only needs a tiny bit of extra JS
+      to get the original Base 64 string back:
+    </p>
+
+    <pre>"...".replace(/A(\d+)/g,(_,a)=>"A".repeat(+a+1))</pre>
+
+    <p>
+      45 bytes for the reconstitution code for a total of 345 bytes instead of
+      524? Pretty good!
+    </p>
+
+    <h1>The proof is in the pudding.</h1>
+
+    <p>
+      But you want proof that it works. I anticipated this, and made sure that
+      this very page uses this font. Of course, it's tiny, so you didn't see it,
+      but just for fun, scroll to the top of this page... do you see the text
+      <strong>"Let's make a small font"</strong>? Copy-paste that text. Anywhere
+      will do, a text editor is the most useful.
+    </p>
+
+    <p>
+      Yes, that's a hundred A's in there, which you didn't see because they're
+      actually typeset using this tiny, tiny font, which was loaded through an
+      <code>@font-face</code> declaration in a dynamically created &lt;style&gt;
+      element.
+    </p>
+
+    <p>This stuff is amazing.</p>
+
+    <h2>So... what did you do this for?</h2>
+
+    <p>
+      In a nutshell: @font-face custom font loading detecting. Loading custom
+      fonts on a webpage takes time, because the font has to be downloaded, and
+      even when it has been downloaded, it has to be loaded into memory. So,
+      between "showing the page" and "showing the page with the right font",
+      there's a period where the text has been typeset, but with the wrong font.
+      Best case, this period is imperceivably short. But the bigger the fonts,
+      the bigger the problem. Even a 100Kb font can cause a website to "flip"
+      between the initial fallback font, and the intended font. If that's the
+      page's main font, the user-experience is ruined. For web animation using
+      the canvas, the problem is even bigger, because you might see an animation
+      that's started before all the fonts are done downloading, and the text
+      will suddenly change typeface a few, or maybe even 100 frames into the
+      animation.
+    </p>
+
+    <p>
+      What this font lets you do is typeset a div with "font-family: 'Desired
+      Font', tinyfont", and then poll its dimensions over a few milliseconds.
+      You can detect whether a font is really available now, using two
+      approaches: 1) if the div has a width that is "essentially 0px", the
+      desired font's not loaded yet. Or, 2) if the div has the same width as a
+      reference div typeset with only the tinyfont, the desired font's not
+      loaded yet. this makes it possible to accurately tell whether a browser is
+      ready to show what you want to show people, rather than allowing it to
+      show users something you didn't want them to see at all.
+    </p>
+
+    <p>
+      My personal motive was to work this into
+      <a href="http://processingjs.org">processing.js</a>, which is the
+      JavaScript interpreter for Processing source code, used to write visual
+      programs such as graphics and animations. You can imagine how shitty an
+      animation would be if it used "sans-serif" for the first 10 or 20 frames,
+      before using that beautiful font you bought specifically for your
+      animation =)
+    </p>
+
+    <p>
+      -- Mike "Pomax" Kamermans<br />
+      <a href="http://processingjs.nihongoresources.com">nihongoresources.com</a
+      ><br />
+    </p>
+
+    <p>
+      You can reach me via email at "Pomax" at nihongoresources, but you'll also
+      find me on several IRC networks under the same name, mostly on
+      irc.mozilla.org, irc.freenode.net, irc.highway.net, irc.aniverse.com, and
+      flakily on enterthegame and EFnet.
+    </p>
+
+    <hr />
+
+    <h1>Some questions</h1>
+
+    <hr />
+
+    <h2>Why don't you just gzip it?</h2>
+
+    <p>
+      This is a very good question. Gzipping the font makes it super tiny. The
+      528 byte TTF file ends up being around 242 bytes (your mileage may vary
+      depending on the exact parameters used), so clearly it might be worth
+      telling the server to gzip it for us. However, that only works as separate
+      download, and I don't want to have to rely on a separate download to get
+      the font — consider that even if the font is tiny, the idea was to have a
+      font available for testing whether downloaded fonts were done. It would be
+      INCREDIBLY silly to first have to download the font that is supposed to
+      check whether fonts have downloaded =)
+    </p>
+
+    <p>
+      I need this to be available even before the DOM is ready, and that means
+      inlining it as a script. Sadly, that also means binary data is out. And
+      don't even think about gzipping just the font, BASE64-ing that, and then
+      adding a javascript deflator to inline-unpack it. You'll end up putting on
+      weight... So that's one part of the answer.
+    </p>
+
+    <p>
+      The other is that now you have two options. If your server can compress
+      your file with the plain BASE64 data better than it can compress the data
+      with the pre-compressed generative function: use the BASE64 version. If
+      your server is set up to use maximum compression, you can probably shave
+      about 50 bytes off using the BASE64 string, compared to the compressed
+      javascript version - No one's stopping you from making sure you send out
+      the least amount of bytes.
+    </p>
+
+    <p>
+      But, if you don't have that luxury, a 408 character javascript function is
+      a <strong>lot</strong> smaller than a 704 byte BASE64 string. While
+      typically you're going to want to go for plain BASE64 on the page, now you
+      have an informed choice.
+    </p>
+
+    <p>
+      (To prove the generative function works, though, obviously this page uses
+      the compressed 408 byte javascript generator)
+    </p>
+
+    <h2>
+      What about embedding it as gzipped image data in a PNG? Those get unpacked
+      by the browser.
+    </h2>
+
+    <p>
+      That's actually a really cool idea, and some people
+      <a
+        href="http://blog.nihilogic.dk/2008/05/compression-using-canvas-and-png.html"
+        >have already experimented with that notion</a
+      >
+      even before HTML5 was "HTML5". The long and short of it is that you can
+      indeed embed arbitrary data as a gzipped block inside a PNG, using pixel
+      values to encode binary data (they're both bytes, it's perfectly legal),
+      and then extracting the data again by grabbing the image's pixel data by
+      drawing it on a canvas and walking through the pixel array.
+    </p>
+
+    <p>
+      Seriously, this is really cool. The problem with this is that it's only
+      really cool for big payloads, where the act of gzipping the data saves you
+      500 bytes or more. For small payloads it actually bloats things
+      tremendously: The PNG header adds a little over 70 bytes to the gzipped
+      payload, so that's not so bad, but in order to load the image, make a
+      canvas, get its 2D context, draw the image using this context, get the
+      pixel data, then run through the data, decode and buffer it in a string,
+      then load that string as javascript, you need about 400 bytes worth of
+      javascript. And that's without data validation.
+    </p>
+
+    <h2>It doesn't work!</h2>
+
+    <p>
+      That's not a question, but: you need javascript enabled. Don't worry, this
+      page doesn't use google analytics or some other nonsense. And feel free to
+      check the source code if you don't believe me. This page doesn't use any
+      imported scripts. If you're in IE, depending on your security settings,
+      you might get a warning because of the data-URI. You can safely allow this
+      (but again, you are responsible for making sure I'm not lying. I know I'm
+      not, but you only have my word for it, and you don't know me).
+    </p>
+
+    <h2>It also doesn't work in [some browser] on [some OS]!?</h2>
+
+    <p>
+      Send me an email, to pomax at nihongoresources dot com, and I'll see what
+      I can do. The more current browsers this works on, the better. However,
+      I'm only trying to get this to work for browsers that support HTML5 (if
+      your browser doesn't support the &lt;canvas&gt; element, for instance, I'm
+      going to tell you to get a better browser instead).
+    </p>
+  </body>
+</html>
