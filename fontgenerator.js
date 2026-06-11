@@ -97,7 +97,10 @@ TinyFontGenerator = {
    */
   convertData: function (data) {
     var buffer = "";
-    data = data.replace(/\s+/g, " ").trim().split(" ");
+    data = data
+      .replace(/[\s\r\n]+/g, " ")
+      .trim()
+      .split(" ");
     // convert from string to byte code
     for (var bt = 0, e = data.length; bt < e; bt++) {
       buffer += this.asByte(data[bt].trim());
@@ -161,10 +164,9 @@ TinyFontGenerator = {
 
   // ------ TABLE DEFINITIONS ------
 
-  // table data - do not access these values directly, use get[...] instead
+  // Table data - do not access these values directly, use get[...] instead
   OS2data: false,
   CMAPdata: false,
-  codedCharacter: false,
   GLYFdata: false,
   HEADdata: false,
   HHEAdata: false,
@@ -173,6 +175,9 @@ TinyFontGenerator = {
   MAXPdata: false,
   NAMEdata: false,
   POSTdata: false,
+
+  // Our font's single cmapped character
+  codedCharacter: false,
 
   /**
    * Get the OS/2 table data, or set it up if it doesn't exist yet.
@@ -183,7 +188,8 @@ TinyFontGenerator = {
     }
 
     var data = "";
-    data += " 00 01"; // OS/2 table version
+
+    data += " 00 01"; // The current (Jan 2012) OS/2 table version is 5
     data += " 00 00"; // xAvgCharWidth
     data += " 00 01"; // weight class: 100 ("thin")
     data += " 00 01"; // width class: 1 ("ultra condensed")
@@ -305,24 +311,11 @@ TinyFontGenerator = {
 
     // glyph 1: .notdef
     data += " 00 00"; // simple glyph
-    data += " 00 00  00 00"; // x/y min
-    data += " 00 00  00 00"; // y/x max
-    data += " 00 00"; // end point(s): coordinate 0 is the last point in the path
-    data += " 00 00"; // instructions: there are no TTF instructions
-    /*
-      Outline flags for the only point in the glyph:
+    data += " 00 00 00 00"; // min x/y
+    data += " 00 00 00 00"; // max x/y
 
-       0 coordinate represents an on-curve point
-       0 x coordinate is encoded as SHORT
-       0 y coordinate is encoded as SHORT
-       0 flag repeat
-       1 x coordinate is 'same as last', which for the first coordinate means it's zero.
-       1 y coordinate is also 'same as last'
-       0 reserved
-       0 reserved
-    */
-    data += " 0C";
-    data += " 00"; // padding byte to make sure the table is LONG aligned
+    // As this glyph has no contour, we're already done, as no data
+    // passed the 10 byte header is required.
 
     this.GLYFdata = this.convertData(data);
     return this.GLYFdata;
@@ -424,9 +417,9 @@ TinyFontGenerator = {
     }
 
     var data = "";
-    data += " 00 00"; // location for .notdef: no glyph
+    data += " 00 00"; // location for .notdef: there is no glyph
     data += " 00 00"; // location for our custom character: also no glyph
-    data += " 00 08"; // end of GLYF table: 16 bytes [encoded value '8'], although I don't know why we need this value, as the font engine can get this value from the SFNT 'glyf' tag.
+    data += " 00 05"; // end of GLYF table "divided by two" so a 10 byte GLYF table means a value of 5.
 
     this.LOCAdata = this.convertData(data);
     return this.LOCAdata;
@@ -544,6 +537,7 @@ TinyFontGenerator = {
       offset = 12 + 16 * olen, // offset tracker for table offset values
       tablename, // iteration value
       len; // iteration value
+
     for (var i = 0; i < olen; i++) {
       tablename = ordering[i];
       // table directory should record the table's actual (not padded) length
