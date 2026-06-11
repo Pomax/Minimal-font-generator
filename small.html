@@ -54,11 +54,13 @@
     <script src="fontgenerator.js"></script>
     <script>
       (() => {
+        const twosevenfour =
+          "A2EA4KAIA3wAgT1MvMgA8CsA4VmNtYXA9BBA4CxnbHlmA9TA5KaGVhZA9E8A4NmhoZWEA8BdA4CRobXR4A9ZgA4GbG9jYQA8GgA4Bm1heHA9BqA4CBuYW1lA9cgA4gcG9zdA9HoA4IA2BA5QABA111BA2MA2QA4wABA2gA4BA2EA2EA3BB//8A3BB////wA2BA23BA13F8PPPUA2BA29BA22EA44BA18UA4BA5gA12EA26gAeA2MA2QQJA2EA7MA2QQJA2IA2gA7QA40==";
         const fontface = document.createElement("style");
         fontface.textContent = `
         @font-face {
             font-family: 'Empty Font';
-            src: url('data:application/x-font-ttf;base64,${TinyFontGenerator.generateFont(`A`)}') format('truetype');
+            src: url('data:application/x-font-ttf;base64,${twosevenfour.replace(/A(\d+)/g, (_, a) => `A`.repeat(+a))}') format('truetype');
         }
     `;
         document.head.appendChild(fontface);
@@ -93,7 +95,7 @@
     </script>
 
     <p class="note">
-      A story about creating a 524 byte TTF file, encoded as a 345 character
+      A story about creating a 520 byte TTF file, encoded as a 317 character
       javascript function that generates its Base 64 equivalence string.
     </p>
 
@@ -300,17 +302,14 @@
     >
 
     <p>
-      Much better: it's now 980 bytes. Basically the .notdef glyph
-      <strong>needs</strong> an outline, but since we'll never actually be using
-      it (we'll only use this font for the letter "A") it can have a nonsense
-      outline. The letter A, the one we'll actually be typesetting, needs at
-      least two coordinates for it to count as a real glyph, but that's still
-      barely any data so that's fine.
+      Much better: it's now 980 bytes. But we can do even better: if we want too
+      keep using TTX the .notdef glyph <em>needs</em> an outline, but the
+      <em>spec</em>
+      does not have this requirement, so we can compact this table quite a bit
+      once we run out of TTX-able options... So what else can we do?
     </p>
 
-    <p></p>
-
-    <p>So... what else can we do...? Wait a minute, what's this NAME table?</p>
+    <p>Wait a minute, what's this NAME table?</p>
 
     <pre>
   &lt;name&gt;
@@ -676,39 +675,56 @@ DE 06 54 5C 00 00 00 AC | 00 00 00 36 68 68 65 61 | 00 04 00 00 00 00 00 E4 | 00
     >
 
     <p>
-      Sadly, we can't touch these values either. At least not without breaking
-      the font in Opera. Boo! Ohwell, onward. And by onward, I mean let's skip
-      OS/2, because it's too important. And HMTX is already all zeroes. We can't
-      touch CMAP, because all the information is about where to find the outline
-      data, so on to LOCA. Here's where things get interesting.
+      Here, too, there are some improvements possible: we only have on glyph,
+      used At least not without breaking the font in Opera. Boo! Ohwell, onward.
+      And by onward, I mean let's skip OS/2, because it's too important. And
+      HMTX is already all zeroes. We can't touch CMAP, because all the
+      information is about where to find the outline data, so on to LOCA. Here's
+      where things get interesting.
     </p>
 
     <p>
-      LOCA is the "Location to Index" table. It says which offset, relative to
-      the beginning of the GLYF table, to use for which glyph. It currently
-      looks like this:
+      Back to our GLYF table: if we're willing to give up TTX parsing, we can
+      actually make that take up only 10 bytes: We can follow the spec and
+      declare a single glyph, with zero contours or points, and zeroes for min
+      x/y and max x/y, and then we can make sure that the associated LOCA table
+      points to that empty glyph for both our .notdef and "real" character:
     </p>
 
     <pre>
-    00 00
-    00 08
-    00 12  </pre
+    00 00      "this is a simple glyph"
+    00 00 00 00 with min x/y values of zero
+    00 00 00 00 and max x/y values of also zero</pre
     >
 
+    <p>That's... well that's about as efficient as we can make it!</p>
+
     <p>
-      But... if we want all the glyphs to look the same, can we just make them
-      all 00? Wouldn't that make everything point to glyph 0? In theory, yes.
-      But sadly this time Opera, Chrome and Firefox no longer consider this a
-      legal font. So LOCA stays the same. We can't make it 00 00 00 08 00 08
-      either, because then Opera refuses to load it. Damn you, browsers.
+      Then for that LOCA table, which is the "Location to Index" table. It says
+      which offset, relative to the beginning of the GLYF table, to use for
+      which glyph. It currently looks like this:
     </p>
 
-    <p>Next up, the GLYF table. We're not touching that.</p>
+    <pre>
+    00 00 Position for .notdef
+    00 08 Position for our custom character
+    00 12 GLYF table length </pre
+    >
+
+    <p>So let's make sure that matches are our new GLYF table:</p>
+
+    <pre>
+    00 00 Position of our empty glyph
+    00 00 Same position, nice and efficient!
+    00 05 The new GLYF table is 10 bytes, and LOCA saves that, "divided by two", so: 5 </pre
+    >
+
+    <p>No space savings, but we get a few more consecutive zeroes.</p>
 
     <p>
-      So that leaves the NAME and POST tables. Last one first: There is an
-      annoying "03" element that we'd like to set to "00". Sadly for us, this
-      time Chrome complains. So POST stays the way it is.
+      That leaves the NAME and POST tables. Last one first: There is an annoying
+      "03" element that we'd like to set to "00". Sadly for us, this time Chrome
+      complains. So POST stays the way it is.
     </p>
 
     <p>That leaves NAME...</p>
@@ -937,7 +953,7 @@ DE 06 54 5C 00 00 00 AC | 00 00 00 36 68 68 65 61 | 00 04 00 00 00 00 00 E4 | 00
     </p>
 
     <p>
-      We now have a 524 byte TTF that will compress quite ridiculously well.
+      We now have a 520 byte TTF that will compress quite ridiculously well.
       Stand-alone gzipping using -9 turns it into a 242 byte file, so let's see
       how small we can get it if we want it compressed in a way that we can just
       inline in a web page!
@@ -945,26 +961,26 @@ DE 06 54 5C 00 00 00 AC | 00 00 00 36 68 68 65 61 | 00 04 00 00 00 00 00 E4 | 00
 
     <h2>Putting it on a web page - Base 64 and beyond</h2>
 
-    <p>We now have our base font, and it's tiny, only taking up 524 bytes:</p>
+    <p>We now have our base font, and it's tiny:</p>
 
     <pre>
 00 01 00 00 00 0a 00 80 | 00 03 00 20 4f 53 2f 32 | 00 00 00 00 00 00 00 ac | 00 00 00 56 63 6d 61 70
-00 00 00 00 00 00 01 04 | 00 00 00 2c 67 6c 79 66 | 00 00 00 00 00 00 01 30 | 00 00 00 10 68 65 61 64
-00 00 00 00 00 00 01 40 | 00 00 00 36 68 68 65 61 | 00 00 00 00 00 00 01 78 | 00 00 00 24 68 6d 74 78
-00 00 00 00 00 00 01 9c | 00 00 00 06 6c 6f 63 61 | 00 00 00 00 00 00 01 a4 | 00 00 00 06 6d 61 78 70
-00 00 00 00 00 00 01 ac | 00 00 00 20 6e 61 6d 65 | 00 00 00 00 00 00 01 cc | 00 00 00 20 70 6f 73 74
-00 00 00 00 00 00 01 ec | 00 00 00 20 00 01 00 01 | 00 64 00 01 00 00 00 00 | 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 01 04 | 00 00 00 2c 67 6c 79 66 | 00 00 00 00 00 00 01 30 | 00 00 00 0a 68 65 61 64
+00 00 00 00 00 00 01 3c | 00 00 00 36 68 68 65 61 | 00 00 00 00 00 00 01 74 | 00 00 00 24 68 6d 74 78
+00 00 00 00 00 00 01 98 | 00 00 00 06 6c 6f 63 61 | 00 00 00 00 00 00 01 a0 | 00 00 00 06 6d 61 78 70
+00 00 00 00 00 00 01 a8 | 00 00 00 20 6e 61 6d 65 | 00 00 00 00 00 00 01 c8 | 00 00 00 20 70 6f 73 74
+00 00 00 00 00 00 01 e8 | 00 00 00 20 00 01 00 00 | 00 01 00 01 00 00 00 00 | 00 00 00 00 00 00 00 00
 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00
-00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 01 00 | 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00
 00 00 00 00 00 00 00 01 | 00 03 00 01 00 00 00 0c | 00 04 00 20 00 00 00 04 | 00 04 00 01 00 00 00 41
-ff ff 00 00 00 41 ff ff | ff c0 00 01 00 00 00 00 | 00 01 00 00 00 00 00 00 | 00 00 00 00 00 00 31 00
-00 01 00 00 00 00 00 00 | 00 00 00 00 5f 0f 3c f5 | 00 00 20 00 00 00 00 00 | 00 00 00 00 00 00 00 00
-00 00 00 00 00 00 00 00 | 01 00 00 00 00 00 00 01 | 00 02 00 00 00 00 00 00 | 00 01 00 00 00 01 00 00
-00 01 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 01 00 00 00 00
-00 00 00 00 00 00 00 00 | 00 08 00 00 00 01 00 00 | 00 02 00 01 00 01 00 00 | 00 00 00 02 00 00 00 00
-00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 02 | 00 1e 00 03 00 01 04 09 | 00 01 00 00 00 00 00 03 
-00 01 04 09 00 02 00 02 | 00 00 00 00 00 01 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00
-00 00 00 00 00 00 00 00 | 00 00 00 00</pre
+ff ff 00 00 00 41 ff ff | ff c0 00 01 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 01 00 00
+00 00 00 00 00 00 00 00 | 5f 0f 3c f5 00 00 10 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00
+00 00 00 00 01 00 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 01 00 00 | 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 01 | 00 00 00 00 00 00 00 00
+00 00 00 00 00 05 00 00 | 00 01 00 00 00 02 00 00 | 00 00 00 00 00 00 00 01 | 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 | 00 00 00 02 00 1e 00 03 | 00 01 04 09 00 01 00 00 | 00 00 00 03 00 01 04 09
+00 02 00 02 00 00 00 00 | 00 01 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00</pre
     >
 
     <p>
@@ -974,17 +990,17 @@ ff ff 00 00 00 41 ff ff | ff c0 00 01 00 00 00 00 | 00 01 00 00 00 00 00 00 | 00
     </p>
 
     <pre>
-AAEAAAAKAIAAAwAgT1MvMgAAAAAAAACsAAAAVmNtYXAAAAAAAAABBAAAACxnbHlmAAAAAAAAATAAAAAQaGVhZAAAAAAAAAFAAAAAN
-mhoZWEAAAAAAAABeAAAACRobXR4AAAAAAAAAZwAAAAGbG9jYQAAAAAAAAGkAAAABm1heHAAAAAAAAABrAAAACBuYW1lAAAAAAAAAc
-wAAAAgcG9zdAAAAAAAAAHsAAAAIAABAAEAZAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAABAAMAAQAAAAwABAAgAAAABAAEAAEAAABB//8AAABB////wAABAAAA
-AAABAAAAAAAAAAAAAAAAMQAAAQAAAAAAAAAAAABfDzz1AAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAEAAgAAAAAAAAABA
-AAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAIAAAAAQAAAAIAAQABAAAAAAACAAAAAAAAAAAAAA
-AAAAAAAAAAAAIAHgADAAEECQABAAAAAAADAAEECQACAAIAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</pre
+AAEAAAAKAIAAAwAgT1MvMgAAAAAAAACsAAAAVmNtYXAAAAAAAAABBAAAACxnbHlmAAAAAAAAATAAAAAKaGVhZAAAAAAAAAE8AAAAN
+mhoZWEAAAAAAAABdAAAACRobXR4AAAAAAAAAZgAAAAGbG9jYQAAAAAAAAGgAAAABm1heHAAAAAAAAABqAAAACBuYW1lAAAAAAAAAc
+gAAAAgcG9zdAAAAAAAAAHoAAAAIAABAAAAAQABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAMAAQAAAAwABAAgAAAABAAEAAEAAABB//8AAABB////wAABAAAA
+AAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAF8PPPUAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAEAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAUAAAABAAAAAgAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAA
+AAAAAAAgAeAAMAAQQJAAEAAAAAAAMAAQQJAAIAAgAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==</pre
     >
 
     <p>
-      That's a 700 byte string, which seems way more than the TTF file we
+      That's a 696 byte string, which seems way more than the TTF file we
       started with... but it's hard to miss all that repetition in the string.
       You can see why making as many values 00 as possible was a good idea:
       there are some long stretches of A in there, and that means we can save a
@@ -995,26 +1011,26 @@ AAAAAAAAAAAAIAHgADAAEECQABAAAAAAADAAEECQACAAIAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAA
       For example: there are very, <em>very</em> few numbers in the Base 64
       string, and not a single digit follows the letter "A", so we could simply
       collapse all those stretches of "AAA..." with a single "A" and then the
-      number of repetitions, and then use a regex replace to get the original
-      string back:
+      number of repetitions with a simple
+      <code>.replace(/A(A+)/g,(_,a) => `A${a.length+1}`)</code>:
     </p>
 
     <pre>
-AAEA3KAIA2wAgT1MvMgA7CsA3VmNtYXA8BBA3CxnbHlmA8TA4QaGVhZA8FA4NmhoZWEA7BeA3CRobXR4A8ZwA3GbG9jYQA7GkA3Bm
-1heHA8BrA3CBuYW1lA8cwA3gcG9zdA8HsA3IAABAAEAZAABA88QA20BAAMAAQA3wABAAgA3BAAEAAEA2BB//8A2BB////wAABA6BA
-15MQA2QA11BfDzz1A2gA28QA7EAAgA8BA4QA3EA33QA16IA4QA3IAAQABA6CA25IAHgADAAEECQABA6DAAEECQACAAIA6EA39=</pre
+A2EA4KAIA3wAgT1MvMgA8CsA4VmNtYXA9BBA4CxnbHlmA9TA5KaGVhZA9E8A4NmhoZWEA8BdA4CRobXR4A9ZgA4GbG9jYQA8GgA4B
+m1heHA9BqA4CBuYW1lA9cgA4gcG9zdA9HoA4IA2BA5QABA111BA2MA2QA4wABA2gA4BA2EA2EA3BB//8A3BB////wA2BA23BA13F8
+PPPUA2BA29BA22EA44BA18UA4BA5gA12EA26gAeA2MA2QQJA2EA7MA2QQJA2IA2gA7QA40==</pre
     >
 
     <p>
-      And now we have a 300 byte string that only needs a tiny bit of extra JS
+      And now we have a 274 byte string that only needs a tiny bit of extra JS
       to get the original Base 64 string back:
     </p>
 
-    <pre>"...".replace(/A(\d+)/g,(_,a)=>"A".repeat(+a+1))</pre>
+    <pre>"...".replace(/A(\d+)/g,(_,a)=>`A`.repeat(+a))</pre>
 
     <p>
-      45 bytes for the reconstitution code for a total of 345 bytes instead of
-      524? Pretty good!
+      43 bytes for the reconstitution code gives us a total of 317 bytes to form
+      our Base 64 font string, instead of 520 of binary code. Pretty good!
     </p>
 
     <h1>The proof is in the pudding.</h1>

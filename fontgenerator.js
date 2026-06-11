@@ -334,13 +334,13 @@ TinyFontGenerator = {
     data += " 00 00 00 00"; // font revision 0
     data += " 00 00 00 00"; // as this font will never be installed, its checksum is irrelevant
     data += " 5F 0F 3C F5"; // even though the TTF magic number is fixed, we HAVE to include it =(
-    data += " 40 00"; // special flags: we do not care about them
+    data += " 00 00"; // special flags: we do not care about them
     data += " 10 00"; // EM quad size of 8192 - any higher and Opera breaks
     data += " 00 00 00 00 00 00 00 00"; // Number of seconds since 12:00 midnight, January 1, 1904 (64-bit integer)
     data += " 00 00 00 00 00 00 00 00"; // idem dito
     data += " 00 00"; // xmin
     data += " 00 00"; // ymin
-    data += " 01 00"; // xMax for this font. For some reason, Opera breaks when this value is lower than 0x0100
+    data += " 01 00"; // xMax (pre-chromium Opera breaks when this value is lower than 0x0100)
     data += " 00 00"; // ymax
     data += " 00 00"; // macstyle - irrelevant, because this font will never be catalogued
     data += " 00 00"; // smallest readable size in pixels: zero.
@@ -436,11 +436,11 @@ TinyFontGenerator = {
     var data = "";
     data += " 00 01 00 00"; // table version must be 0x00010000 for TTF (CFF uses 0x00005000)
     data += " 00 02"; // two 'glyphs'; .notdef and our custom character
-    data += " 00 01"; // contours have at most one point.
-    data += " 00 01"; // glyphs have at most one contour.
+    data += " 00 00"; // contours have no points.
+    data += " 00 00"; // glyphs have no contours.
     data += " 00 00"; // maximum number of points in composite glyphs = zero, because there are no composite glyphs
     data += " 00 00"; // maximum number of contours in composite glyphs = zero, because there are no composite glyphs
-    data += " 00 02"; // max_zones should be either 0x0001 ("uses twilight zone") or 0x0002 ("does not use twilight zone"). This is relevant for TTF instructions only
+    data += " 00 01"; // maxZones should be either 0x0001 ("uses twilight zone") or 0x0002 ("does not use twilight zone"). This is only relevant for TTF instructions, which we don't use, but we can't set it to 0...
     data += " 00 00"; // maxTwilightPoints is zero
     data += " 00 00"; // Number of Storage Area locations
     data += " 00 00"; // Number of FDEFs
