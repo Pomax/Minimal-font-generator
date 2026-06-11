@@ -51,18 +51,14 @@
         font-family: "Empty Font";
       }
     </style>
+    <script src="fontgenerator.js"></script>
     <script>
       (() => {
-        const b64 =
-          "AAEA3KAIA2wAgT1MvMgA7CsA3VmNtYXA8BBA3CxnbHlmA8TA4QaGVhZA8FA4NmhoZWEA7BeA3CRobXR4A8ZwA3GbG9jYQA7GkA3Bm1heHA8BrA3CBuYW1lA8cwA3gcG9zdA8HsA3IAABAAEAZAABA88QA20BAAMAAQA3wABAAgA3BAAEAAEA2BB//8A2BB////wAABA6BA15MQA2QA11BfDzz1A2gA28QA7EAAgA8BA4QA3EA33QA16IA4QA3IAAQABA6CA25IAHgADAAEECQABA6DAAEECQACAAIA6EA39=".replace(
-            /A(\d+)/g,
-            (_, a) => `A`.repeat(+a + 1),
-          );
         const fontface = document.createElement("style");
         fontface.textContent = `
         @font-face {
             font-family: 'Empty Font';
-            src: url('data:application/x-font-ttf;base64,${b64}') format('truetype');
+            src: url('data:application/x-font-ttf;base64,${TinyFontGenerator.generateFont(`A`)}') format('truetype');
         }
     `;
         document.head.appendChild(fontface);
@@ -90,8 +86,10 @@
     </header>
 
     <script>
-      insertme.textContent =
-        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+      (() => {
+        const line = `AAAAAAAAAA`;
+        insertme.textContent = line.repeat(10);
+      })();
     </script>
 
     <p class="note">
