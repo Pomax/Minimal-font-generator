@@ -60,7 +60,7 @@
         fontface.textContent = `
         @font-face {
             font-family: 'Empty Font';
-            src: url('data:application/x-font-ttf;base64,${twosevenfour.replace(/A(\d+)/g, (_, a) => `A`.repeat(+a))}') format('truetype');
+            src: url('data:application/x-font-ttf;base64,${twosevenfour.replace(/A(\d+)/g, (_, a)=>`A`.repeat(+a))}') format('truetype');
         }
     `;
         document.head.appendChild(fontface);
@@ -1030,7 +1030,7 @@ PPPUA2BA29BA22EA44BA18UA4BA5gA12EA26gAeA2MA2QQJA2EA7MA2QQJA2IA2gA7QA40==</pre
 
     <p>
       43 bytes for the reconstitution code gives us a total of 317 bytes to form
-      our Base 64 font string, instead of 520 of binary code. Pretty good!
+      our Base 64 font string, instead of 520 bytes of binary code. Pretty good!
     </p>
 
     <h1>The proof is in the pudding.</h1>
