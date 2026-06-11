@@ -183,10 +183,10 @@ TinyFontGenerator = {
     }
 
     var data = "";
-    data += " 00 03"; // The current (Jan 2012) OS/2 table version is 4
+    data += " 00 01"; // OS/2 table version
     data += " 00 00"; // xAvgCharWidth
-    data += " 00 00"; // weight class: 100 ("thin")
-    data += " 00 00"; // width class: 1 ("ultra condensed")
+    data += " 00 01"; // weight class: 100 ("thin")
+    data += " 00 01"; // width class: 1 ("ultra condensed")
     data += " 00 00"; // fsType: Installable Embedding
 
     data += " 00 00"; // subscript sizes are irrelevant
