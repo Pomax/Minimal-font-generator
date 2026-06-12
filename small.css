@@ -1,0 +1,47 @@
+header {
+  h1 {
+    margin-bottom: 0;
+  }
+  h2 {
+    font-size: 0.7em;
+  }
+}
+headt,
+maxp,
+hmtx,
+loca,
+namet {
+  background-color: #ddf;
+}
+hhea,
+os_2,
+cmap,
+glyf,
+post {
+  background-color: #dfd;
+}
+pre {
+  background-color: #ffd;
+}
+new,
+search,
+replace {
+  color: #fff;
+}
+new {
+  background-color: #006;
+}
+search {
+  background-color: #600;
+}
+replace {
+  background-color: #060;
+}
+.note {
+  font-style: italic;
+  font-size: 1.1em;
+}
+#insertme {
+  font-family: "Empty Font";
+  font-weight: normal;
+}
