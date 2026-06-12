@@ -112,21 +112,23 @@
       implementations for every font bug report we received. After we released
       v1.2.3, font handling desperately needed a full rewrite and I found myself
       back in a "fixing font things" position. And that brings us to today.
+      (2026 edit: well, a decade ago now since writing this, but it's still a
+      worthwhile investigative exercise in the current browser landscape)
     </p>
 
     <p>
-      Today, I find myself in the position that we need to wait with starting a
-      Processing "sketch" (the Processing name for a program) on a web page
-      until all fonts that should be preloaded, have finished preloading. This
-      means we can't just wait for the browser to finished downloading them, but
-      we also have to wait for the browser to finish loading them into memory
-      for styling text on a page. If you think that waiting for the download
-      should be enough: fonts are relatively big, complicated things. It can
-      take a few hundred milliseconds between a font being done downloading and
-      being fully loaded in memory if it's a few hundred kb, but bigger,
-      professional fonts in four different styles means it can actually take
-      more than a second between 'download complete' and 'font available for
-      styling'.
+      Today (so, "a decade ago" =), I find myself in the position that we need
+      to wait with starting a Processing "sketch" (the Processing name for a
+      program) on a web page until all fonts that should be preloaded, have
+      finished preloading. This means we can't just wait for the browser to
+      finished downloading them, but we also have to wait for the browser to
+      finish loading them into memory for styling text on a page. If you think
+      that waiting for the download should be enough: fonts are relatively big,
+      complicated things. It can take a few hundred milliseconds between a font
+      being done downloading and being fully loaded in memory if it's a few
+      hundred kb, but bigger, professional fonts in four different styles means
+      it can actually take more than a second between 'download complete' and
+      'font available for styling'.
     </p>
 
     <p>
@@ -903,6 +905,8 @@ DE 06 54 5C 00 00 00 AC | 00 00 00 36 68 68 65 61 | 00 04 00 00 00 00 00 E4 | 00
       00] causes validation to fail, but we can set it to [00 01] at least.
     </p>
 
+    <h2>Putting it on a web page - Base 64 and beyond</h2>
+
     <p>
       We now have a 520 byte TTF that will compress quite ridiculously well.
       Stand-alone gzipping using -9 turns it into a 242 byte file, so let's see
@@ -910,9 +914,7 @@ DE 06 54 5C 00 00 00 AC | 00 00 00 36 68 68 65 61 | 00 04 00 00 00 00 00 E4 | 00
       inline in a web page!
     </p>
 
-    <h2>Putting it on a web page - Base 64 and beyond</h2>
-
-    <p>We now have our base font, and it's tiny:</p>
+    <p>First off, let's look at our current byte code, because we can:</p>
 
     <pre>
 00 01 00 00 00 0a 00 80 | 00 03 00 20 4f 53 2f 32 | 00 00 00 00 00 00 00 ac | 00 00 00 56 63 6d 61 70
@@ -935,9 +937,10 @@ ff ff 00 00 00 41 ff ff | ff c0 00 01 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00
     >
 
     <p>
-      That's a complete TTF file. But see all those zeroes? Let's turn those
-      into A's by encoding this binary file using BASE64 so that it can be used
-      in a data-URI, embedded on a webpage.
+      That's a complete TTF file. But see all those zeroes? Time to compress the
+      heck out of those. First, if we want to embed this on a webpage, we'll
+      need the Base 64 representation of this font. That part's easy: one
+      <code>btoa()</code> call later, and we have this:
     </p>
 
     <pre>
@@ -952,10 +955,10 @@ AAAAAAAgAeAAMAAQQJAAEAAAAAAAMAAQQJAAIAAgAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
     <p>
       That's a 696 byte string, which seems way more than the TTF file we
-      started with... but it's hard to miss all that repetition in the string.
+      started with... but it's hard to miss all the repetition in the string.
       You can see why making as many values 00 as possible was a good idea:
-      there are some long stretches of A in there, and that means we can save a
-      lot of space by reversibly replacing them with shorter strings.
+      there are some long stretches of "A" in there, and that means we can save
+      a lot of space by reversibly replacing them with shorter strings.
     </p>
 
     <p>
@@ -963,7 +966,8 @@ AAAAAAAgAeAAMAAQQJAAEAAAAAAAMAAQQJAAIAAgAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
       string, and not a single digit follows the letter "A", so we could simply
       collapse all those stretches of "AAA..." with a single "A" and then the
       number of repetitions with a simple
-      <code>.replace(/A(A+)/g,(_,a) => `A${a.length+1}`)</code>:
+      <code>base64String.replace(/A(A+)/g,(_,a) => `A${a.length+1}`)</code>,
+      which gives us the following result:
     </p>
 
     <pre>
@@ -973,15 +977,18 @@ PPPUA2BA29BA22EA44BA18UA4BA5gA12EA26gAeA2MA2QQJA2EA7MA2QQJA2IA2gA7QA40==</pre
     >
 
     <p>
-      And now we have a 274 byte string that only needs a tiny bit of extra JS
-      to get the original Base 64 string back:
+      And now we have a 274 byte string (that's almost 2:1 compression using the
+      simplest possible compression technique!) that only needs a tiny bit of
+      extra JS to get the original Base 64 string back:
     </p>
 
-    <pre>"...".replace(/A(\d+)/g,(_,a)=>`A`.repeat(+a))</pre>
+    <pre>"A2EA...A40==".replace(/A(\d+)/g,(_,a)=>`A`.repeat(+a))</pre>
 
     <p>
-      43 bytes for the reconstitution code gives us a total of 317 bytes to form
-      our Base 64 font string, instead of 520 bytes of binary code. Pretty good!
+      So with 43 bytes for the reconstitution code, we get a final 317 bytes
+      that we'll need to add to a webpage in order to form our Base 64 font
+      string, way doesn from even the already ridiculously tiny 520 bytes of
+      binary code. That's pretty good!
     </p>
 
     <h1>The proof is in the pudding.</h1>
@@ -1005,32 +1012,35 @@ PPPUA2BA29BA22EA44BA18UA4BA5gA12EA26gAeA2MA2QQJA2EA7MA2QQJA2IA2gA7QA40==</pre
 
     <h2>So... what did you do this for?</h2>
 
+    <p>In a nutshell: @font-face custom font loading detecting.</p>
+
     <p>
-      In a nutshell: @font-face custom font loading detecting. Loading custom
-      fonts on a webpage takes time, because the font has to be downloaded, and
-      even when it has been downloaded, it has to be loaded into memory. So,
-      between "showing the page" and "showing the page with the right font",
-      there's a period where the text has been typeset, but with the wrong font.
-      Best case, this period is imperceivably short. But the bigger the fonts,
-      the bigger the problem. Even a 100Kb font can cause a website to "flip"
-      between the initial fallback font, and the intended font. If that's the
-      page's main font, the user-experience is ruined. For web animation using
-      the canvas, the problem is even bigger, because you might see an animation
-      that's started before all the fonts are done downloading, and the text
-      will suddenly change typeface a few, or maybe even 100 frames into the
-      animation.
+      Loading custom fonts on a webpage takes time, because the font has to be
+      downloaded, and even when it has been downloaded, it has to be loaded into
+      memory. So, between "showing the page" and "showing the page with the
+      right font", there's a period where the text has been typeset, but with
+      the wrong font. Best case, this period is imperceivably short. But the
+      bigger the fonts, the bigger the problem. Even a 100Kb font can cause a
+      website to "flip" between the initial fallback font, and the intended
+      font. If that's the page's main font, the user-experience is ruined. For
+      web animation using the canvas, the problem is even bigger, because you
+      might see an animation that's started before all the fonts are done
+      downloading, and the text will suddenly change typeface a few, or maybe
+      even 100 frames into the animation.
     </p>
 
     <p>
-      What this font lets you do is typeset a div with "font-family: 'Desired
-      Font', tinyfont", and then poll its dimensions over a few milliseconds.
-      You can detect whether a font is really available now, using two
-      approaches: 1) if the div has a width that is "essentially 0px", the
-      desired font's not loaded yet. Or, 2) if the div has the same width as a
-      reference div typeset with only the tinyfont, the desired font's not
-      loaded yet. this makes it possible to accurately tell whether a browser is
-      ready to show what you want to show people, rather than allowing it to
-      show users something you didn't want them to see at all.
+      You may know this as the "FOUT" or "Flash Of Unstyled Text" problem, and a
+      lot of work went into addressing it between when I originally wrote this,
+      and the latest update in 2026, with things like
+      <code>font-display: swap</code> and preloading, but the same period saw
+      the rise of client side frameworks with their "lol there is no content
+      here until JS runs" (please. Be better. SRR was always an option, even
+      back in the React 0.x days - if your page shows nothing without JS, you
+      are <em>bad at the web</em> and you should strive to do better), and in
+      that context it's still useful to have <em>something</em> that runs
+      immediately and can be used to detect font loads because a reflow suddenly
+      turned a stretch of text from zero-width to not-zero-width.
     </p>
 
     <p>
@@ -1148,7 +1158,23 @@ PPPUA2BA29BA22EA44BA18UA4BA5gA12EA26gAeA2MA2QQJA2EA7MA2QQJA2IA2gA7QA40==</pre
       not, but you only have my word for it, and you don't know me).
     </p>
 
-    <h2>It also doesn't work in [some browser] on [some OS]!?</h2>
+    <h2>Did you change something in 2026? This used to be broken in Safari!</h2>
+
+    <p>
+      This was already broken in Safari/WebKit back in 2012 but at the time I
+      didn't own anything made by Apple so I had no way to really figure out
+      what was going on. In 2026, I have multiple macbooks and it turns out that
+      whatever as wrong in 2012 was still wrong, so I threw out a help line and
+      someone immediately jumped in to help get the problem fixed. Maybe by the
+      time you read this
+      <a href="https://bugs.webkit.org/show_bug.cgi?id=316951"
+        >WebKit bug 316951</a
+      >
+      is already fixed, and your version of Safari won't even know it ever had
+      this bug!
+    </p>
+
+    <h2>It doesn't work in [some browser] on [some OS] still, though!?</h2>
 
     <p>
       Send me an email, to pomax at nihongoresources dot com or message me on
