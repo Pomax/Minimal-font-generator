@@ -47,8 +47,7 @@
 
     <p class="note">
       A story about creating a 520 byte TTF file, encoded as a 317 character
-      javascript function that generates its Base 64 equivalence string for use
-      on a webpage.
+      javascript function that generates its Base 64 equivalence string.
     </p>
 
     <h2>Let's get started</h2>
@@ -66,94 +65,70 @@
     </p>
 
     <p>
-      What you probably don't know is that fonts are <em>complicated</em>>.
-      However you think a font works: no, it's way more complicated than that.
-      <a href="https://learn.microsoft.com/en-us/typography/opentype/spec/"
-        >No really, it's so much more complicated than what you're thinking
-        of</a
-      >.
+      What you probably don't know is that fonts are hell. There are a number of
+      common formats, and none of them are what you'd describe as "easy to
+      read". In order to make fonts small, the data inside a font has been
+      encoded in most spectacularly space-saving ways, after which a million and
+      one features were tacked on top because different groups needed additional
+      functionality from fonts. This includes things like right to left writing,
+      subroutines/substitutions so that compositional characters (such as nearly
+      all CJK characters) take up less space, vertical metrics for Asian
+      scripts, substitution pairs for letter combinations, which is the backbone
+      for written Arabian, the list goes on and on. If you are thinking about
+      going into fonts, from a programming perspective, rather than a design
+      perspective, I tip my hat to you; you are in for a rough ride.
     </p>
 
     <p>
-      There are a number of common formats, and none of them are what you'd
-      describe as "easy to read". In order to make fonts small, the data inside
-      a font has been encoded in most spectacularly space-saving ways, after
-      which a million and one features were tacked on top because different
-      groups needed additional functionality from fonts. This includes things
-      like right to left writing, subroutines/substitutions so that
-      compositional characters (such as nearly all CJK characters) take up less
-      space, vertical metrics for Asian scripts, substitution pairs for letter
-      combinations, which is the backbone for written Arabian, the list goes on
-      and on. If you are thinking about going into fonts, from a programming
-      perspective, rather than a design perspective, I tip my hat to you; you
-      are in for a rough ride.
-    </p>
-
-    <p>
-      However, should you preservere, you might end up where I am today (2026
-      edit: or, where I was over a decade ago of course =): a head full of
-      knowledge about things most people stay away from, and a sudden
-      realisation that a thing I was trying to do is something that might
-      actually be possible... I need the smallest possible OpenType font avaible
-      so I can embed it into a web page in order to do font load detection...
-      can I just make one?
-    </p>
-
-    <p>
-      (Both Fore and aftshadowing: that "just" is doing some
-      <strong><em>seriously</em></strong> heavy lifting)
+      However, should you preservere, you might end up where I am today: a head
+      full of knowledge about things most people stay away from, and a sudden
+      realisation that that thing you're trying to do is something you can
+      actually do - I need the smallest possible OpenType font avaible so I can
+      embed it into a web page in order to do font load detection... can I
+      simply make it myself?
     </p>
 
     <h2>Some back story</h2>
 
     <p>
-      I've written my own OpenType font parsers, with TrueType and Type2
-      support, and while writing those I've learned many things about font
-      technologies. I used them for playing around with CJK character
-      composition, text composition on web canvas, and a bunch of other things
-      like path extraction and optimization that eventually ended up (in a very
-      round-about way) becoming my
-      <a href="https://pomax.github.io/bezierinfo">Primer on Bézier Curves</a>.
-    </p>
-
-    <p>
-      Then, after a while, fonts slowly sank back into the background until one
-      day, while talking about log visualisations, someone mentioned using the
+      I've written my own OpenType font parser, with TrueType and Type2 support,
+      and while writing it I've learned many things about font technologies. I
+      used this thing for playing around with CJK character composition, and
+      then after a while fonts slowly sank back into the background. Then one
+      day, while talking about log visualisations someone mentioned using the
       <a href="http://processing.org">Processing</a> programming language.
       Having never heard of it, I looked it up, discovered it was about the best
-      programming language in the world for quick and easy visualisations, and
-      then dicovered it had a javascript port. I was hooked.
+      programming language in the world for visualisations, and then dicovered
+      it had a javascript port, too, which got me hooked.
     </p>
 
     <p>
       I started helping out with
-      <a href="http://processingjs.org"> Processing.js</a> (which I ended up
-      playing a significant role in, and ended up retiring in December 2018. RIP
-      Processing.js, you still occupy a huge part of my heart) and after a while
-      I realised I could exploit the web's various technologies to mix
-      visualisation in browsers with my font parsers in the backend for a much
-      more playful font interaction. And, of course (as these things go) I
-      became a dev for Pjs and started looking more and more into its font
+      <a href="http://processingjs.org"> Processing.js</a>, and after a while I
+      realised I could exploit the web's various technologies to mix
+      visualisation in browsers with my font parser in the backend for a much
+      more playful font interaction. And, of course, as these things go I became
+      a dev for Pjs and started looking more and more into its font
       implementations for every font bug report we received. After we released
       v1.2.3, font handling desperately needed a full rewrite and I found myself
       back in a "fixing font things" position. And that brings us to today.
-      (2026 edit: well, over a decade ago now since writing this, but it's still
-      a worthwhile investigative exercise in the current browser landscape)
+      (2026 edit: well, a decade ago now since writing this, but it's still a
+      worthwhile investigative exercise in the current browser landscape)
     </p>
 
     <p>
-      Today (so, read: "over a decade ago" =), I find myself in the position
-      that we need to wait with starting a Processing "sketch" (the Processing
-      name for a program) on a web page until all fonts that should be
-      preloaded, have finished preloading. This means we can't just wait for the
-      browser to finished downloading them, but we also have to wait for the
-      browser to finish loading them into memory for styling text on a page. If
-      you think that waiting for the download should be enough: fonts are
-      relatively big, complicated things. It can take a few hundred milliseconds
-      between a font being done downloading and being fully loaded in memory if
-      it's a few hundred kb, but bigger, professional fonts in four different
-      styles means it can actually take more than a second between 'download
-      complete' and 'font available for styling'.
+      Today (so, "a decade ago" =), I find myself in the position that we need
+      to wait with starting a Processing "sketch" (the Processing name for a
+      program) on a web page until all fonts that should be preloaded, have
+      finished preloading. This means we can't just wait for the browser to
+      finished downloading them, but we also have to wait for the browser to
+      finish loading them into memory for styling text on a page. If you think
+      that waiting for the download should be enough: fonts are relatively big,
+      complicated things. It can take a few hundred milliseconds between a font
+      being done downloading and being fully loaded in memory if it's a few
+      hundred kb, but bigger, professional fonts in four different styles means
+      it can actually take more than a second between 'download complete' and
+      'font available for styling'.
     </p>
 
     <p>
@@ -170,43 +145,40 @@
     <h2>What if we just use some font creation software?</h2>
 
     <p>
-      I need something really small, with "never used" tiny metrics, I own
-      various font editing applications, so clearly the best place to start is
-      to just see if I can make a small font using
-      <a href="https://fontforge.org">FontForge</a>. Create a font with some
-      empty glyphs, compact it (yay for FontForge!), save it as TTF (remember,
-      this is early 2012, WOFF won't even exist until many months from now), and
-      see what we get. As I used the same glyph for 97 characters in the lower
-      ascii region, it's bigger than strictly necessary, and comes out at a
-      filesize of 66kb.
+      So we get to where we are now. I need something really small, with "never
+      used" tiny metrics, so the best place to start is my original tiny font.
+      It was made using <a href="https://fontforge.org">FontForge</a>, and has a
+      small em-quad setting (30 units) and a tiny glyph for a few letters (a
+      10x10 unit rectangular glyphs). This has been compacted (yay for
+      FontForge!) and saved as TTF. Since I used the same glyph for 97
+      characters in the lower ascii region, it's bigger than strictly necessary,
+      and comes out at a filesize of 66kb.
     </p>
 
     <h2>Is that small enough?</h2>
 
     <p>
-      Obviously: no. That's bigger than the 50kb font I was using before, so the
-      immediate question is: can I make things smaller? For instance, do we
-      really need all those letters? And obviously, we don't. So let's fire up
+      Obviously, no. That's bigger than the 50kb font I was using before, so can
+      we make things smaller? For instance, do we really need all those letters?
+      to be honest, we don't. So let's fire up
       <a href="https://github.com/fonttools/fonttools">TTX</a> and kill
-      everything except the "A". That'll do, really. So: strip everything not
-      ".notdef" and "A", then convert the .ttx file back to ttf.
+      everything except the "A". That'll do, really. stripping everything not
+      ".notdef" and "A", then converting the .ttx file back to ttf.
     </p>
 
-    <p>Now we have a 1568 byte file</p>
-
-    <h2>Is <em>that</em> small enough?</h2>
-
     <p>
-      I mean... it's pretty good? And it'll load in Chrome, Firefox, Opera
+      This already gives us shows a <em>massive</em> reduction in size: a 1568
+      bytes font! That's pretty good, and it'll load in Chrome, Firefox, Opera
       (which when I originally wrote this was still a real, independent
-      browser), Internet Explorer (<em>which at the time still existed!</em>)
-      and Safari if you try to use it in an @font-face rule, but... I know
-      fonts, and even though 1568 bytes sounds tiny for a font, I have read the
+      browser), Internet Explorer (which at the time still existed!) and Safari
+      if you try to use it in an @font-face rule, but... I know fonts, and even
+      though 1568 sounds tiny, I read the
       <a href="https://www.muppetlabs.com/~breadbox/software/tiny/teensy.html"
         >"45 byte ELF executable"</a
       >
-      article; I know I can at the very least halve its size with "legal"
-      changes to the file, and probably even more with some creative choices.
+      article; I know I can probably at the very least halve its size with
+      "legal" changes to the file, and probably even more with some creative
+      choices.
     </p>
 
     <h2>Pushing past 1568 bytes</h2>
@@ -587,12 +559,12 @@ DE 06 54 5C 00 00 00 AC | 00 00 00 36 68 68 65 61 | 00 04 00 00 00 00 00 E4 | 00
       the data will be once we truly run out of things to change.
     </p>
 
-    <h2>Let's whip out a hex editor and get cracking.</h2>
+    <h3>Let's whip out a hex editor and get cracking.</h3>
 
     <p>
-      First, let's have a look at the organization of this font. The file starts
-      with a 12 byte "SFNT" header, which gives us the font version, and four
-      numbers for locating byte sequences for specific tables:
+      First, let's have a look at the organization of this font. First, the 12
+      byte "SFNT" header, which gives us the font version, and four numbers for
+      locating byte sequences for specific tables:
     </p>
 
     <pre>
@@ -631,17 +603,17 @@ name: post, checkSum:     196608, offset: 656, length: 32</pre
     >
 
     <p>
-      Let's look at what that means by colouring our byte sequence in
-      alternative colours, starting at the SFNT header, then the table
-      directory, and then each table in order:
+      Let's look at what that means by colouring our byte sequence, showing the
+      header and table dictionary as before but painting the tables
+      alternatingly:
     </p>
 
-    <pre><sfnt>00 01 00 00 00 0A 00 80 | 00 03 00 20</sfnt> <tdir>4F 53 2F 32 | 71 95 70 D4 00 00 01 28 | 00 00 00 56 63 6D 61 70 | 
+    <pre>00 01 00 00 00 0A 00 80 | 00 03 00 20 4F 53 2F 32 | 71 95 70 D4 00 00 01 28 | 00 00 00 56 63 6D 61 70 | 
 00 0C 00 74 00 00 01 88 | 00 00 00 2C 67 6C 79 66 | 01 04 62 39 00 00 01 BC | 00 00 00 24 68 65 61 64 | 
 DE 06 54 5C 00 00 00 AC | 00 00 00 36 68 68 65 61 | 00 04 00 00 00 00 00 E4 | 00 00 00 24 68 6D 74 78 | 
 00 00 00 00 00 00 01 80 | 00 00 00 06 6C 6F 63 61 | 00 12 00 08 00 00 01 B4 | 00 00 00 06 6D 61 78 70 | 
 00 04 00 02 00 00 01 08 | 00 00 00 20 6E 61 6D 65 | 00 DF 1C AB 00 00 01 E0 | 00 00 00 B0 70 6F 73 74 | 
-00 03 00 00 00 00 02 90 | 00 00 00 20</tdir> <headt>00 01 00 00 | 00 01 00 00 02 48 13 63 | 5F 0F 3C F5 00 0B 00 20 | 
+00 03 00 00 00 00 02 90 | 00 00 00 20 <headt>00 01 00 00 | 00 01 00 00 02 48 13 63 | 5F 0F 3C F5 00 0B 00 20 | 
 00 00 00 00 B4 91 A2 80 | 00 00 00 00 CA 57 74 C6 | 00 00 00 00 00 01 00 01 | 00 00 00 00 00 00 00 00 | 
 00 00 00 00</headt> <hhea>00 01 00 00 | 00 01 00 00 00 00 00 00 | 00 00 FF FF 00 01 00 00 | 00 00 00 00 00 00 00 00 | 
 00 00 00 00 00 00 00 01</hhea> | <maxp>00 01 00 00 00 02 00 02 | 00 01 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 
@@ -660,12 +632,12 @@ DE 06 54 5C 00 00 00 AC | 00 00 00 36 68 68 65 61 | 00 04 00 00 00 00 00 E4 | 00
 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00</post> |</pre>
 
     <p>
-      Fancy. Now that we have some basic visualization set up, let's get
+      And now that we have some basic visualization set up, let's get
       byte-whacking. First, let's deal with that HEAD table. There are lots of
       bytes that represent strings. It would be nice if we could zero those, but
       sadly, we can't. The HEAD table is pretty much invulnerable when it comes
-      to byte sniping. It's like the byte-level spec for OpenType was
-      well-thought-out or something...
+      to byte sniping. It's like the byte-level spec for OpenType was well
+      thought out or something...
     </p>
 
     <p>Moving on, let's try the HHEA table instead. This is its layout:</p>
@@ -708,23 +680,20 @@ DE 06 54 5C 00 00 00 AC | 00 00 00 36 68 68 65 61 | 00 04 00 00 00 00 00 E4 | 00
     <p>Here, too, there are some improvements possible!</p>
 
     <p>
-      Onward. And by onward, I mean let's skip OS/2, because it's super fragile
-      and too important. Despite the name, it's somehow the most important table
-      in the entire font. And while we're skipping tables, we can skip HMTX too,
-      because it's already all-zereoes. Nothing to optimize! Next up, we can't
-      really touch CMAP because it's already minimally complete, so we're left
-      with the earlier idea of messing with the GLYF table's bytes.
+      Onward. And by onward, I mean let's skip OS/2, because it's too important,
+      and we can skip HMTX because it's already all-zereoes. We can't really
+      touch CMAP because it's already minimally complete, so let's revisit the
+      ealier idea of messing with the GLYF table's bytes directly.
     </p>
 
     <p>
-      If we're willing to give up TTX parsing (and we already committed to that)
-      we can fit the entire table in exactly 10 bytes. We can follow the spec to
-      the letter and declare a single glyph, with zero contours or points, and
-      zeroes for min x/y and max x/y. If we do that, we can point both our
-      .notdef and "real" character to that glyph, and because it has no
-      outlines, we don't need to specify any additional data like contour
-      instructions or bytemask flags for points, so: let's go, ten zero bytes
-      coming up:
+      If we're willing to give up TTX parsing, and boy howdy do we, we can fit
+      the entire table in exactly 10 bytes. We can follow the spec to the letter
+      and declare a single glyph, with zero contours or points, and zeroes for
+      min x/y and max x/y. If we do that, we can point both our .notdef and
+      "real" character to that glyph, and because it has no outlines, we don't
+      need to specify any additional data like contour instructions or bytemask
+      flags for points, so: let's go, ten zero bytes coming up:
     </p>
 
     <pre>
@@ -747,10 +716,7 @@ DE 06 54 5C 00 00 00 AC | 00 00 00 36 68 68 65 61 | 00 04 00 00 00 00 00 E4 | 00
 00 12   Byte length of the GLYF table, divided by two (for very technical reasons)</pre
     >
 
-    <p>
-      So let's update that so that it matches what we just did to the GLYF
-      table:
-    </p>
+    <p>So let's make sure that matches are our new GLYF table:</p>
 
     <pre>
 00 00   .notdef still has offset zero
@@ -762,19 +728,15 @@ DE 06 54 5C 00 00 00 AC | 00 00 00 36 68 68 65 61 | 00 04 00 00 00 00 00 E4 | 00
 
     <p>
       That leaves the NAME and POST tables. Last one first: There is an annoying
-      "03" element that we'd like to set to "00", so we do!
+      "03" element that we'd like to set to "00". Sadly for us, this time Chrome
+      complains. So POST stays the way it is.
     </p>
 
     <p>
-      Which means we're left with the NAME table. It's huge. Normally, it's tiny
-      compared to the rest of the font, but the rest of our font is about the
-      size of a paragraph of text, so even a minimal name table will be
-      gargantuan compared to the rest of the font. Right now it takes up
-      <em>almost as many bytes as we'll end up with once we're done</em>. So
-      let's see what we can do there.
+      That leaves our NAME table, which had all those string records that we
+      just didn't need. So, let's see what we can do there. The first 6 bytes
+      are pretty simple:
     </p>
-
-    <p>The first 6 bytes are pretty simple:</p>
 
     <pre>
 00 00   table format 0. we don't touch his.
@@ -824,30 +786,78 @@ DE 06 54 5C 00 00 00 AC | 00 00 00 36 68 68 65 61 | 00 04 00 00 00 00 00 E4 | 00
     </p>
 
     <pre>
-                              00 00   still table format 0
+00 00 version zero still...
                               00 02   but only two entries!
                               00 1E   which means a new offset for the string heap
-00 03 00 01 04 09 00 01 00 00 00 00   windows font family name entry: use string 0
-00 03 00 01 04 09 00 02 00 02 00 00   windows font subfamily name entry: also use string 0
-                              00 00   string 0: the most beautiful string</pre
+00 03 00 01 04 09 00 01 00 00 00 00   windows font family name entry
+00 03 00 01 04 09 00 02 00 02 00 00   windows font subfamily name entry
+                              00 00   and the most beautiful string</pre
     >
 
     <p>
-      Note that if any of the previous changes still allowed TTX to at least
-      <em>try</em> to do something with the font, we're now thoroughly off the
-      beaten track: TTX won't even accept this as legal input anymore. Even
-      though we're still obeying the OpenType spec!
+      So immediately, let's set that value "02" for record 10 to "00", and move
+      the "40" up. Excellent! Except now it won't work in Opera. What if we just
+      keep the record as is, but set the string table to 00 00?
     </p>
 
     <p>
-      Of course, this change also moves the POST table up, so we need to make
-      sure that we correct its offset value in the table directory at the top of
-      the font, and we'll need to recompute the NAME table checksum to make sure
-      it's right:
+      Well, turns out that's just fine. Removing the value in the TTX xml wasn't
+      allowed, but setting it to zero bytes, as long as it's there, is perfectly
+      acceptable.
+    </p>
+
+    <p>
+      But what about those useless records? Can we just carpet-bomb them with
+      zeroes? Well... yes O_o
     </p>
 
     <pre>
-  NAME data: 00 00 00 02 | 00 1E 00 03 | 00 01 04 09 | 00 01 00 00 | 00 00 00 03 | 00 01 04 09 | 00 02 00 02 | 00 00 00 00
+ 1) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+ 2) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+ 3) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+ 4) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+ 5) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+ 6) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+ 7) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+ 8) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+ 9) 00 03 | 00 01 | 04 09 | 00 01 | 00 00 | 00 00
+10) 00 03 | 00 01 | 04 09 | 00 02 | 00 02 | 00 00
+11) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+12) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+13) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+14) 00 00 | 00 00 | 00 00 | 00 00 | 00 00 | 00 00
+    00 00</pre
+    >
+
+    <p>
+      Holy something from somewhere! Wait, doesn't that mean there are only 2
+      records? 9, and 10? Let's go and prune this table so that it looks like
+      this:
+    </p>
+
+    <pre>
+    00 00   (table format 0)
+    00 02   (2 entries in this table)
+    00 1E   (start of the "strings" section for this table: 0 + 6 + 24 = 30 = 0x1E)
+ 1) 00 03 | 00 01 | 04 09 | 00 01 | 00 00 | 00 00
+ 2) 00 03 | 00 01 | 04 09 | 00 02 | 00 02 | 00 00
+    00 00</pre
+    >
+
+    <p>
+      Note that as of this change, this font is can no longer be converted to
+      .ttx and then back to .ttf, because as far as TTX is concerned, the name
+      table is now malformed. Even though technically it isn't.
+    </p>
+
+    <p>
+      Of course, this change this will move the POST table up, so we need to
+      make sure that we correct its offset value. And the checksum for the NAME
+      table will now fail, so we need to make sure it's right:
+    </p>
+
+    <pre>
+  NAME: 00 00 00 02 | 00 1E 00 03 | 00 01 04 09 | 00 01 00 00 | 00 00 00 03 | 00 01 04 09 | 00 02 00 02 | 00 00 00 00
   offset: 480
   length: 32
   checksum: ...</pre
@@ -896,7 +906,7 @@ DE 06 54 5C 00 00 00 AC | 00 00 00 36 68 68 65 61 | 00 04 00 00 00 00 00 E4 | 00
       five browsers!
     </p>
 
-    <h2>Did we actually need to do that?</h2>
+    <h2>...did we actually need to do that?</h2>
 
     <p>
       But wait... is that checksum actually necessary? What if I just set all of
@@ -904,106 +914,73 @@ DE 06 54 5C 00 00 00 AC | 00 00 00 36 68 68 65 61 | 00 04 00 00 00 00 00 E4 | 00
       enough, it turns out the checksums are like traffic lights - they're more
       of a guideline that you can complete ignore when it's safe to do so. Since
       fonts can be huge, and verifying that every table in a font matches its
-      checksum up front can take seconds for fonts (average CJK font size on my
-      computer: 12MB), browsers are (rightly) not going to bother with verifying
-      this value. All font software generates valid checksums. If things don't
-      work, you probably did something weird like trying to byte-snipe your font
-      into something more compressible.
-    </p>
-
-    <p>And let's be reasonable: who'd even do that?</p>
-
-    <h2>Extreme compression: let's just overlap tables?</h2>
-
-    <p>
-      I've read the minimal ELF article, you've read the minimal ELF article: as
-      long as the bytes are the same, execution ranges are just byte offsets, so
-      if the bytes are identical who cares, right?
-    </p>
-
-    <p><sub>...right...?</sub></p>
-
-    <p>
-      Here's where things get annoying. Yes, the spec allows for this. We could
-      shave off SO MANY BYTES by just ordering our tables cleverly and then
-      overlapping some of them on top of, or even completely inside of, other
-      tables. But apparently that's where font parsers draw the line. Even
-      though there is literally nothing in the OpenType spec that says this is
-      illegal (the same is not true for WOFF and WOFF2, overlapping tables are
-      explicitly illegal for those flavours of font due to per-table compression
-      requirements) every browser font engine will go "this is too creative" and
-      treats the font as corrupt.
+      checksum can take seconds for fonts (average CJK font size on my computer:
+      12MB), browsers are (rightly) not going to bother with verifying this
+      value.
     </p>
 
     <p>
-      So much for super hacks, that's at least 32 bytes just left on the table
-      =_=
+      Here's where things get annoying. While you'd think that font engines dont
+      rely on the order in which the tables are indicated in the header, since
+      they're not guaranteed to be sequential, it turns out that they don't like
+      it when you start to mark table offsets so that the content overlaps with
+      other tables. This sucks, because we could easily move the HMTX table to
+      offset [01 03], saving 6 bytes, and alter the POST table so that it's
+      version [00 01] instead of [00 03], which would make it identical, byte
+      for byte, to the MAXP table, so we could have set its offset to the same
+      as MAXP. That would have saved us another 32 bytes.
+    </p>
+
+    <p>
+      Of course, because setting the POST table to [00 01] still makes the data
+      more repetitive, we add that change.
     </p>
 
     <h2>Getting "creative" with our bytes</h2>
 
     <p>
-      Alright so what's left for us to mess with? If you'll remember, we skipped
-      over the OS/2 table because it's kind of "the master table" but like...
-      screw it, we're byte sniping, I want more zeroes. I didn't want to do this
-      earlier because it's a pretty fragile table, any changes to it can
-      trivially invalidate a font, but at this point I've run out of things I
-      can do to the font by reading the spec, so it's "try and see what happens"
-      time.
+      Finally, we also optimise the OS/2 table. I didn't want to do this
+      earlier, because it's a pretty fragile table, but at this point I've run
+      out of things I can do to the font by reading the spec, so it's "try and
+      see what happens" time.
     </p>
 
     <p>
-      First, we set the xAvgCharWidth to zero. This is legal, if very strange
-      for normal fonts (how many fonts literally have no printable characters?),
+      First, we set the xAvgCharWidth to zero. This is legal (if very strange),
       and improves compressibility.
     </p>
 
     <p>
       Then we set the usWeightClass to one, which is the lowest non-zero value
-      we can legally assign it. Way to finally decide that numbers start at 1
-      instead of 0, why are we like this?
+      we can legally assign it.
     </p>
 
     <p>
       We also blank the Font Vendor Identification string. Leaving it blank in
-      TTX results in the string "noop" in the byte code, but since it's never
-      referenced by anything there's no reason to leave it as anything other
-      than four zeroes, thus further improving compressibility.
+      TTX results in the string "noop" in the byte code, but since it's not
+      referenced, we can replace this with [00 00 00 00] and further improve
+      compressibility.
     </p>
 
     <p>
       We then unset all the fsSelection bits, because they are irrelevant. This
-      font will never be used in any classification system or font catalog, so
-      the content of the category bits are arbitrary. That's two more zero
-      bytes.
+      font will never be used in a classification system, so the content of the
+      category bits are arbitrary. That's two more zero bytes.
     </p>
 
     <p>
-      Trudging on, we set the typographic ascender to zero. Its main use is to
+      Continuing on, we set the typographic ascender to zero. Its main use is to
       detemine a correct default line height, and as this font will never be
-      used for mult-line content. This isn't just technically possible, it's the
-      only correct value for this field now!
+      used for mult-line content, an effective line height of zero is just fine.
     </p>
 
     <p>
-      Finally, there are five versions of the OS/2, because the OpenType spec
-      has had quite a few revisions so some folks on the OpenType mailing list
-      even back in 2012 suggested experimenting with changing the table version.
-      Unfortunately, while version 0 is a real version, and it's much smaller
-      than versions 1 through 4, it's also so old that most font parsers
-      consider it a bug if they see an OS/2 table marked as version 0. The
-      lowest we can set it to without upsetting browsers is 1. So... I guess
-      that's what we'll do.
-    </p>
-
-    <p>
-      And... I mean short of quickly filing a few PRs that allow things like
-      <a href="https://freetype.org/">FreeType</a>, 
-      <a href="https://github.com/harfbuzz/harfbuzz">Harfbuzz</a>, or
-      <a href="https://github.com/khaledhosny/ots">OTS</a> to accept things like
-      overlapping tables, that's kind of it. We've done all we can. At least, I
-      think we have, if you know of another trick to try, scroll down to the
-      bottom and let me know! O_O
+      Finally, there was the suggestion from the OpenType mailing list to try
+      using a version 0 OS/2 table. This version is much, much older, but also
+      much smaller. Oddly enough, or perhaps annoyingly enough, none of the
+      browsers respect the OS/2 table version number, and they assume that it's
+      version 5 (which uses byte 00 04... don't ask). Manually setting it to [00
+      00] causes validation to fail, but we can set it to [00 01] at least.
     </p>
 
     <h2>Putting it on a web page - Base 64 and beyond</h2>
@@ -1012,7 +989,7 @@ DE 06 54 5C 00 00 00 AC | 00 00 00 36 68 68 65 61 | 00 04 00 00 00 00 00 E4 | 00
       We now have a 520 byte TTF that will compress quite ridiculously well.
       Stand-alone gzipping using -9 turns it into a 242 byte file, so let's see
       how small we can get it if we want it compressed in a way that we can just
-      inline on a web page!
+      inline in a web page!
     </p>
 
     <p>First off, let's look at our current byte code, because we can:</p>
@@ -1037,13 +1014,11 @@ ff ff 00 00 00 41 ff ff | ff c0 00 01 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00
 00 00 00 00 00 00 00 00</pre
     >
 
-    <p>Again: that's a complete, spec-compliant TTF file. Crazy.</p>
-
     <p>
-      But more importantly: look at all those beautifully long stretches of
-      zeroes. Time to compress the heck out of those. First, if we want to embed
-      this on a webpage, we'll need the Base 64 representation of this font.
-      That part's easy: one binary-to-ascii call later, and we have this:
+      That's a complete TTF file. But see all those zeroes? Time to compress the
+      heck out of those. First, if we want to embed this on a webpage, we'll
+      need the Base 64 representation of this font. That part's easy: one
+      <code>btoa()</code> call later, and we have this:
     </p>
 
     <pre>
@@ -1178,12 +1153,45 @@ PPPUA2BA29BA22EA44BA18UA4BA5gA12EA26gAeA2MA2QQJA2EA7MA2QQJA2IA2gA7QA40==</pre
     <h2>Why don't you just gzip it?</h2>
 
     <p>
-      True, 317 bytes to get a Base 64 string is larger than a 242 byte gzipped
-      payload. It's a good idea, right? However, that only works if we could
-      direcetly embed a gzipped payload as a data uri, and unfortunately we'd
-      <em>still</em> need a Base 64 version for that to work. As Base 64, by
-      definition, turns every 3 bytes into 4 bytes, we'd end up with 323 bytes
-      which is actually <em>more</em> than our 317 byte generator!
+      This is a very good question. Gzipping the font makes it super tiny. The
+      528 byte TTF file ends up being around 242 bytes (your mileage may vary
+      depending on the exact parameters used), so clearly it might be worth
+      telling the server to gzip it for us. However, that only works as separate
+      download, and I don't want to have to rely on a separate download to get
+      the font — consider that even if the font is tiny, the idea was to have a
+      font available for testing whether downloaded fonts were done. It would be
+      INCREDIBLY silly to first have to download the font that is supposed to
+      check whether fonts have downloaded =)
+    </p>
+
+    <p>
+      I need this to be available even before the DOM is ready, and that means
+      inlining it as a script. Sadly, that also means binary data is out. And
+      don't even think about gzipping just the font, BASE64-ing that, and then
+      adding a javascript deflator to inline-unpack it. You'll end up putting on
+      weight... So that's one part of the answer.
+    </p>
+
+    <p>
+      The other is that now you have two options. If your server can compress
+      your file with the plain BASE64 data better than it can compress the data
+      with the pre-compressed generative function: use the BASE64 version. If
+      your server is set up to use maximum compression, you can probably shave
+      about 50 bytes off using the BASE64 string, compared to the compressed
+      javascript version - No one's stopping you from making sure you send out
+      the least amount of bytes.
+    </p>
+
+    <p>
+      But, if you don't have that luxury, a 408 character javascript function is
+      a <strong>lot</strong> smaller than a 704 byte BASE64 string. While
+      typically you're going to want to go for plain BASE64 on the page, now you
+      have an informed choice.
+    </p>
+
+    <p>
+      (To prove the generative function works, though, obviously this page uses
+      the compressed 408 byte javascript generator)
     </p>
 
     <h2>
@@ -1195,7 +1203,7 @@ PPPUA2BA29BA22EA44BA18UA4BA5gA12EA26gAeA2MA2QQJA2EA7MA2QQJA2IA2gA7QA40==</pre
       That's actually a really cool idea, and some people
       <a
         href="http://blog.nihilogic.dk/2008/05/compression-using-canvas-and-png.html"
-        >have indeed experimented with that</a
+        >have already experimented with that notion</a
       >
       even before HTML5 was "HTML5". The long and short of it is that you can
       indeed embed arbitrary data as a gzipped block inside a PNG, using pixel
@@ -1230,18 +1238,11 @@ PPPUA2BA29BA22EA44BA18UA4BA5gA12EA26gAeA2MA2QQJA2EA7MA2QQJA2IA2gA7QA40==</pre
 
     <h2>Did you change something in 2026? This used to be broken in Safari!</h2>
 
-    <p>I did! It only took fifteen years!</p>
-
     <p>
-      When I first wrote this article in 2012, Safari/WebKit had a weird bug
-      that showed the title as "sma ll", but at the time I didn't own anything
-      made by Apple so I had no way to really figure out what was going on.
-    </p>
-
-    <p>
-      However, at the time of the current rewrite in mid-2026 I have multiple
-      macbooks lying around, and it turns out that whatever as wrong in 2012 was
-      still wrong, so I threw out a request of help over on social media and
+      This was already broken in Safari/WebKit back in 2012 but at the time I
+      didn't own anything made by Apple so I had no way to really figure out
+      what was going on. In 2026, I have multiple macbooks and it turns out that
+      whatever as wrong in 2012 was still wrong, so I threw out a help line and
       someone immediately jumped in to help get the problem fixed. Maybe by the
       time you read this
       <a href="https://bugs.webkit.org/show_bug.cgi?id=316951"

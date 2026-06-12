@@ -20,6 +20,7 @@ html {
       }
     }
 
+    sfnt,
     headt,
     maxp,
     hmtx,
@@ -28,6 +29,7 @@ html {
       background-color: #ddf;
     }
 
+    tdir,
     hhea,
     os_2,
     cmap,
