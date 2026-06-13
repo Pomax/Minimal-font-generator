@@ -11,7 +11,7 @@
  **/
 
 // we're going to hand-craft the hell out of this font =P
-TinyFontGenerator = {
+globalThis.TinyFontGenerator = {
   /**
    * table ordering (ASCII-sorted, rather than alpha)
    */
@@ -260,8 +260,8 @@ TinyFontGenerator = {
     data += " 00 01"; // we only have one subtable
 
     // what are we coding for?
-    data += " 00 03"; // platform: 3 (Windows)
-    data += " 00 01"; // encoding: 1 (Unicode)
+    data += " 00 00"; // platform: 0 (Unicode)
+    data += " 00 00"; // encoding: 0 ("unicode 1.0")
     data += " 00 00 00 0C"; // subtable offset: 12 bytes from start of data block
 
     // We'll use a format 4 subtable, since OTS currently rejects any other subtable format
@@ -465,8 +465,8 @@ TinyFontGenerator = {
     data += " 00 00";
     data += " 00 02"; // two entries
     data += " 00 1E"; // offset for the string heap
-    data += " 00 03  00 01  04 09  00 01  00 00  00 00"; // windows font family name entry
-    data += " 00 03  00 01  04 09  00 02  00 02  00 00"; // windows font subfamily name entry
+    data += " 00 00  00 00  00 00  00 01  00 00  00 00"; // unicode 1.0 font family name entry
+    data += " 00 00  00 00  00 00  00 02  00 02  00 00"; // unicode 1.0 font subfamily name entry
     // string heap
     data += " 00 00";
     this.NAMEdata = this.convertData(data);
@@ -494,6 +494,14 @@ TinyFontGenerator = {
     data += " 00 00 00 00"; //  "
     this.POSTdata = this.convertData(data);
     return this.POSTdata;
+  },
+
+  compress: function (base64String) {
+    return base64String.replace(/A(A+)/g, (_, a) => `A${a.length + 1}`);
+  },
+
+  decompress: function (compressed) {
+    return compressed.replace(/A(\d+)/g, (_, a) => `A`.repeat(+a));
   },
 
   /**
@@ -531,6 +539,8 @@ TinyFontGenerator = {
     font += this.chr(0) + this.chr(3); // entry selector (determined by table count)
     font += this.chr(0) + this.chr(32); // range shift    (determined by table count)
 
+    var postOffset = 0;
+
     // Write the OpenType table definitions
     var ordering = this.ordering, // local alias
       olen = ordering.length, // length of table ordering
@@ -548,6 +558,9 @@ TinyFontGenerator = {
       }
       font += tablename;
       font += this.computeChecksum(tables[tablename]); // table checksum
+
+      if (tablename === `post`) postOffset = this.toULONG(offset);
+
       font += this.toULONG(offset); // offset for this table
       font += this.toULONG(len); // table length
       offset += tables[tablename].length;
@@ -558,7 +571,22 @@ TinyFontGenerator = {
       font += tables[ordering[i]];
     }
 
+    // This is still illegal, even though there's nothing in the spec that says it's illegal.
+    // font = experiment(font);
+
     // return this font as a glorious base64 encoded string
     return this.btoa(font);
   },
 };
+
+// Can we just put HMTX inside POST? It's all zeroes, after all...
+function experiment(font) {
+  const hmtx = font.indexOf(`hmtx`);
+  const hmtxData = font.slice(hmtx, hmtx + 12);
+
+  const post = font.indexOf(`post`);
+  const postData = font.slice(post, post + 12);
+
+  const data = hmtxData.slice(0, 8) + postData.slice(8, 12);
+  return font.slice(0, hmtx) + data + font.slice(post + 12);
+}

@@ -6,13 +6,16 @@
     <link rel="stylesheet" href="small.css" />
     <script>
       (() => {
-        const twosevenfour =
-          "A2EA4KAIA3wAgT1MvMgA8CsA4VmNtYXA9BBA4CxnbHlmA9TA5KaGVhZA9E8A4NmhoZWEA8BdA4CRobXR4A9ZgA4GbG9jYQA8GgA4Bm1heHA9BqA4CBuYW1lA9cgA4gcG9zdA9HoA4IA2BA5QABA111BA2MA2QA4wABA2gA4BA2EA2EA3BB//8A3BB////wA2BA23BA13F8PPPUA2BA29BA22EA44BA18UA4BA5gA12EA26gAeA2MA2QQJA2EA7MA2QQJA2IA2gA7QA40==";
+        const compressed =
+          "A2EA4KAIA3wAgT1MvMgA8CsA4VmNtYXA9BBA4CxnbHlmA9TA5KaGVhZA9E8A4NmhoZWEA8BdA4CRobXR4A9ZgA4GbG9jYQA8GgA4Bm1heHA9BqA4CBuYW1lA9cgA4gcG9zdA9HoA4IA2BA5QABA111BA10wABA2gA4BA2EA2EA3BB//8A3BB////wA2BA23BA13F8PPPUA2BA29BA22EA44BA18UA4BA5gA12EA26gAeA10EA15IA2gA7QA40==";
+        const decompressed = compressed.replace(/A(\d+)/g, (_, a) =>
+          `A`.repeat(+a),
+        );
         const fontface = document.createElement("style");
         fontface.textContent = `
         @font-face {
             font-family: 'Empty Font';
-            src: url('data:application/x-font-ttf;base64,${twosevenfour.replace(/A(\d+)/g, (_, a) => `A`.repeat(+a))}') format('truetype');
+            src: url('data:application/x-font-ttf;base64,${decompressed}') format('truetype');
         }`;
         document.head.appendChild(fontface);
       })();
@@ -34,7 +37,7 @@
       <h1>Let's make a sma<span id="insertme"></span>ll font</h1>
       <h2>
         Originally posted July 28<sup>th</sup>, 2011, last updated on June
-        12<sup>th</sup>, 2026
+        13<sup>th</sup>, 2026
       </h2>
     </header>
 
@@ -46,9 +49,9 @@
     </script>
 
     <p class="note">
-      A story about creating a 520 byte TTF file, encoded as a 317 character
-      javascript function that generates its Base 64 equivalence string for use
-      on a webpage.
+      A story about creating a 520 byte spec-compliant font, encoded as a 298
+      character javascript function that generates its Base 64 equivalence
+      string for use on a webpage.
     </p>
 
     <h2>Let's get started</h2>
@@ -214,9 +217,12 @@
     <p>
       So, back to the TTX xml. There's several CMAP entries, all for the same
       letter. Do we need those? No, we don't. They're there for compatibility
-      reasons, but we're only targeting a single platform, so if we only leave
-      the {platformID 3, platEncID 1, language 0} format 4 subtable, then things
-      still work.
+      reasons, but we're only targeting a single platform. So: let's rewrite
+      that to only having a single cmap record for platform id 0, meaning we're
+      targetig the generic "Unicode" platform rather than Windows or Mac etc,
+      with platform-specific encoding id 0, meaning we're targeting "unicode
+      1.0" (which is deprecated, but perfectly legal) and then point to a format
+      4 subtable, that should work just fine.
     </p>
 
     <p>And now our font's 1092 bytes.</p>
@@ -840,6 +846,24 @@ DE 06 54 5C 00 00 00 AC | 00 00 00 36 68 68 65 61 | 00 04 00 00 00 00 00 E4 | 00
     </p>
 
     <p>
+      But hang on, why are we targeting Windows? There's also the Unicode
+      platform id, which is zero, and the name of the game right now is "more
+      zeroes" so let's switch our font to platform-agnostic Unicode, targeting
+      the deprecated, but perfectly legal, Unicode 1.0 standard:
+    </p>
+
+    <pre>
+                              00 00
+                              00 02
+                              00 1E
+00 00 00 00 00 00 00 01 00 00 00 00   Unicode 1.0 font family name entry
+00 00 00 00 00 00 00 02 00 02 00 00   Unicode 1.0 font subfamily name entry
+                              00 00</pre
+    >
+
+    <p>Much better.</p>
+
+    <p>
       Of course, this change also moves the POST table up, so we need to make
       sure that we correct its offset value in the table directory at the top of
       the font, and we'll need to recompute the NAME table checksum to make sure
@@ -1032,7 +1056,7 @@ ff ff 00 00 00 41 ff ff | ff c0 00 01 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00
 00 00 00 00 01 00 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 01 00 00 | 00 00 00 00 00 00 00 00
 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 01 | 00 00 00 00 00 00 00 00
 00 00 00 00 00 05 00 00 | 00 01 00 00 00 02 00 00 | 00 00 00 00 00 00 00 01 | 00 00 00 00 00 00 00 00
-00 00 00 00 00 00 00 00 | 00 00 00 02 00 1e 00 03 | 00 01 04 09 00 01 00 00 | 00 00 00 03 00 01 04 09
+00 00 00 00 00 00 00 00 | 00 00 00 02 00 1e 00 03 | 00 01 00 00 00 01 00 00 | 00 00 00 03 00 01 00 00
 00 02 00 02 00 00 00 00 | 00 01 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00
 00 00 00 00 00 00 00 00</pre
     >
@@ -1050,10 +1074,10 @@ ff ff 00 00 00 41 ff ff | ff c0 00 01 00 00 00 00 | 00 00 00 00 00 00 00 00 | 00
 AAEAAAAKAIAAAwAgT1MvMgAAAAAAAACsAAAAVmNtYXAAAAAAAAABBAAAACxnbHlmAAAAAAAAATAAAAAKaGVhZAAAAAAAAAE8AAAAN
 mhoZWEAAAAAAAABdAAAACRobXR4AAAAAAAAAZgAAAAGbG9jYQAAAAAAAAGgAAAABm1heHAAAAAAAAABqAAAACBuYW1lAAAAAAAAAc
 gAAAAgcG9zdAAAAAAAAAHoAAAAIAABAAAAAQABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAMAAQAAAAwABAAgAAAABAAEAAEAAABB//8AAABB////wAABAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAwABAAgAAAABAAEAAEAAABB//8AAABB////wAABAAAA
 AAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAF8PPPUAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAEAAAAAA
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAUAAAABAAAAAgAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAA
-AAAAAAAgAeAAMAAQQJAAEAAAAAAAMAAQQJAAIAAgAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==</pre
+AAAAAAAgAeAAAAAAAAAAEAAAAAAAAAAAAAAAIAAgAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==</pre
     >
 
     <p>
@@ -1075,12 +1099,12 @@ AAAAAAAgAeAAMAAQQJAAEAAAAAAAMAAQQJAAIAAgAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
     <pre>
 A2EA4KAIA3wAgT1MvMgA8CsA4VmNtYXA9BBA4CxnbHlmA9TA5KaGVhZA9E8A4NmhoZWEA8BdA4CRobXR4A9ZgA4GbG9jYQA8GgA4B
-m1heHA9BqA4CBuYW1lA9cgA4gcG9zdA9HoA4IA2BA5QABA111BA2MA2QA4wABA2gA4BA2EA2EA3BB//8A3BB////wA2BA23BA13F8
-PPPUA2BA29BA22EA44BA18UA4BA5gA12EA26gAeA2MA2QQJA2EA7MA2QQJA2IA2gA7QA40==</pre
+m1heHA9BqA4CBuYW1lA9cgA4gcG9zdA9HoA4IA2BA5QABA111BA10wABA2gA4BA2EA2EA3BB//8A3BB////wA2BA23BA13F8PPPUA
+2BA29BA22EA44BA18UA4BA5gA12EA26gAeA10EA15IA2gA7QA40==</pre
     >
 
     <p>
-      And now we have a 274 byte string (that's almost 2:1 compression using the
+      And now we have a 255 byte string (better than 2:1 compression using the
       simplest possible compression technique!) that only needs a tiny bit of
       extra JS to get the original Base 64 string back:
     </p>
@@ -1088,10 +1112,10 @@ PPPUA2BA29BA22EA44BA18UA4BA5gA12EA26gAeA2MA2QQJA2EA7MA2QQJA2IA2gA7QA40==</pre
     <pre>"A2EA...A40==".replace(/A(\d+)/g,(_,a)=>`A`.repeat(+a))</pre>
 
     <p>
-      So with 43 bytes for the reconstitution code, we get a final 317 bytes
+      So with 43 bytes for the reconstitution code, we get a final 298 bytes
       that we'll need to add to a webpage in order to form our Base 64 font
       string, way doesn from even the already ridiculously tiny 520 bytes of
-      binary code. That's pretty good!
+      binary code. That's amazing!
     </p>
 
     <h1>The proof is in the pudding.</h1>
@@ -1156,18 +1180,7 @@ PPPUA2BA29BA22EA44BA18UA4BA5gA12EA26gAeA2MA2QQJA2EA7MA2QQJA2IA2gA7QA40==</pre
       animation =)
     </p>
 
-    <p>
-      -- Mike "Pomax" Kamermans<br />
-      <a href="http://processingjs.nihongoresources.com">nihongoresources.com</a
-      ><br />
-    </p>
-
-    <p>
-      You can reach me via email at "Pomax" at nihongoresources, but you'll also
-      find me on several IRC networks under the same name, mostly on
-      irc.mozilla.org, irc.freenode.net, irc.highway.net, irc.aniverse.com, and
-      flakily on enterthegame and EFnet.
-    </p>
+    <p>-- <a href="https://mastodon.social/@TheRealPomax">Pomax</a></p>
 
     <hr />
 
@@ -1178,12 +1191,12 @@ PPPUA2BA29BA22EA44BA18UA4BA5gA12EA26gAeA2MA2QQJA2EA7MA2QQJA2IA2gA7QA40==</pre
     <h2>Why don't you just gzip it?</h2>
 
     <p>
-      True, 317 bytes to get a Base 64 string is larger than a 242 byte gzipped
+      True, 298 bytes to get a Base 64 string is larger than a 242 byte gzipped
       payload. It's a good idea, right? However, that only works if we could
       direcetly embed a gzipped payload as a data uri, and unfortunately we'd
       <em>still</em> need a Base 64 version for that to work. As Base 64, by
       definition, turns every 3 bytes into 4 bytes, we'd end up with 323 bytes
-      which is actually <em>more</em> than our 317 byte generator!
+      which is actually <em>more</em> than our 298 byte generator!
     </p>
 
     <h2>
