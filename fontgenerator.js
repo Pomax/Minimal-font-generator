@@ -588,5 +588,5 @@ function experiment(font) {
   const postData = font.slice(post, post + 12);
 
   const data = hmtxData.slice(0, 8) + postData.slice(8, 12);
-  return font.slice(0, hmtx) + data + font.slice(post + 12);
+  return font.slice(0, hmtx) + data + font.slice(hmtx + 12);
 }
